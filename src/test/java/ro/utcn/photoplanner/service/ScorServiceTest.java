@@ -3,6 +3,7 @@ package ro.utcn.photoplanner.service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import ro.utcn.photoplanner.model.FactorScor;
 import ro.utcn.photoplanner.model.Locatie;
@@ -274,14 +275,37 @@ class ScorServiceTest {
 
     // --- afișare ---
 
+    private static ScorMoment cuScorul(double scor) {
+        return new ScorMoment(locatie(180), MomentZi.ORA_AUR_SEARA,
+                ZonedDateTime.now(ZONA), scor, 1.0, List.of());
+    }
+
     @Test
     @DisplayName("Scorul se scrie cu virgulă, ca în românește")
     void scorulSeScrieCuVirgula() {
-        ScorMoment moment = new ScorMoment(locatie(180), MomentZi.ORA_AUR_SEARA,
-                ZonedDateTime.now(ZONA), 0.8412, 1.0, List.of());
+        assertThat(cuScorul(0.8412).scorFormatat()).isEqualTo("0,84");
+        assertThat(cuScorul(0.8412).procent()).isEqualTo(84);
+        assertThat(cuScorul(1.0).scorFormatat()).isEqualTo("1,00");
+    }
 
-        assertThat(moment.scorFormatat()).isEqualTo("0,84");
-        assertThat(moment.procent()).isEqualTo(84);
-        assertThat(moment.verdict()).isEqualTo("Foarte bun");
+    /**
+     * Pragurile sunt pentru câștigătorul unui interval, nu pentru un moment oarecare. Prima
+     * variantă (0,75 / 0,55 / 0,35) dădea „Foarte bun” pentru toate cele cinci teme pe date
+     * reale — o etichetă pe care o primește toată lumea nu spune nimic.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "0.95, Foarte bun",
+            "0.85, Foarte bun",
+            "0.84, Bun",
+            "0.70, Bun",
+            "0.69, Acceptabil",
+            "0.50, Acceptabil",
+            "0.49, Slab",
+            "0.10, Slab"
+    })
+    @DisplayName("Verdictul urmează pragurile calibrate pentru cel mai bun moment")
+    void verdictulUrmeazaPragurile(double scor, String asteptat) {
+        assertThat(cuScorul(scor).verdict()).isEqualTo(asteptat);
     }
 }

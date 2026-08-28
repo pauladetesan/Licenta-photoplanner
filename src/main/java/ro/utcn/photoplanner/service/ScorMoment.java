@@ -32,13 +32,20 @@ public record ScorMoment(Locatie locatie, MomentZi moment, ZonedDateTime cand,
     /**
      * O apreciere în cuvinte, ca să nu rămână doar un număr gol.
      * <p>
-     * Pragurile sunt alese ca scorul să însemne ceva la prima citire: peste 0,75 chiar merită
-     * drumul, sub 0,35 mai bine aștepți altă zi.
+     * Pragurile sunt calibrate pentru <em>câștigătorul</em> unui interval, nu pentru un moment
+     * oarecare. Prima variantă (0,75 / 0,55 / 0,35) fusese gândită pentru un moment singur și
+     * s-a dovedit inutilă la prima rulare pe date reale: cel mai bun moment din șapte zile e
+     * ales dintre vreo treizeci de candidați, așa că iese aproape întotdeauna sus, iar toate
+     * cele cinci teme au primit „Foarte bun”. O etichetă pe care o primește toată lumea nu
+     * spune nimic.
+     * <p>
+     * Cu pragurile de acum, „Foarte bun” înseamnă o fereastră chiar ieșită din comun, nu doar
+     * cea mai bună dintre cele disponibile.
      */
     public String verdict() {
-        if (scor >= 0.75) return "Foarte bun";
-        if (scor >= 0.55) return "Bun";
-        if (scor >= 0.35) return "Acceptabil";
+        if (scor >= 0.85) return "Foarte bun";
+        if (scor >= 0.70) return "Bun";
+        if (scor >= 0.50) return "Acceptabil";
         return "Slab";
     }
 
