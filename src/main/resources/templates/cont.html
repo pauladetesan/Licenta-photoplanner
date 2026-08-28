@@ -44,7 +44,7 @@
     <h1>Contul meu</h1>
     <nav>
         <a th:href="@{/}">Acasă</a> · <a th:href="@{/locatii/mele}">Locațiile mele</a>
-        · <a th:href="@{/sesiuni}">Sesiuni</a> · <a th:href="@{/logout}">Delogare</a>
+        · <a th:href="@{/sesiuni}">Sesiuni</a> · <span th:replace="~{fragmente/delogare :: buton}"></span>
     </nav>
 </div>
 

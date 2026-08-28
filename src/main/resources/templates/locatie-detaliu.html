@@ -128,7 +128,7 @@
     <span sec:authorize="isAuthenticated()"> · <a th:href="@{/locatii/mele}">Locațiile mele</a>
         · <a th:href="@{/favorite}">Favorite</a>
             · <a th:href="@{/sesiuni}">Sesiuni</a>
-            · <a th:href="@{/cont}">Contul meu</a> · <a th:href="@{/logout}">Delogare</a></span>
+            · <a th:href="@{/cont}">Contul meu</a> · <span th:replace="~{fragmente/delogare :: buton}"></span></span>
     <span sec:authorize="!isAuthenticated()"> · <a th:href="@{/login}">Autentificare</a></span>
 </div>
 
