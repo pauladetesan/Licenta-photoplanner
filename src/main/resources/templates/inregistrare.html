@@ -10,6 +10,7 @@
         input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
         button { margin-top: 20px; padding: 10px 20px; cursor: pointer; }
         .eroare { color: #c0392b; background: #fdecea; padding: 10px; margin-top: 16px; }
+        .eroare-camp { color: #c0392b; font-size: 13px; margin: 4px 0 0; }
     </style>
     <link rel="stylesheet" th:href="@{/css/mobil.css}">
 </head>
@@ -18,16 +19,27 @@
 
 <div class="eroare" th:if="${eroare}" th:text="${eroare}"></div>
 
-<form th:action="@{/inregistrare}" method="post">
+<form th:action="@{/inregistrare}" method="post" th:object="${inregistrareForm}">
     <label>Nume afișat
-        <input type="text" name="numeAfisat" required>
+        <input type="text" th:field="*{numeAfisat}" required maxlength="100">
     </label>
+    <p class="eroare-camp" th:if="${#fields.hasErrors('numeAfisat')}" th:errors="*{numeAfisat}"></p>
+
     <label>Email
-        <input type="email" name="email" required>
+        <input type="email" th:field="*{email}" required maxlength="150">
     </label>
+    <p class="eroare-camp" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+
+    <!--
+      Parola nu se re-completează la reafișarea formularului: th:field ar trimite-o înapoi
+      în HTML, iar o parolă nu are ce căuta în pagina servită.
+    -->
     <label>Parolă (minim 8 caractere)
-        <input type="password" name="parola" required minlength="8">
+        <input type="password" name="parola" required minlength="8" maxlength="72"
+               autocomplete="new-password">
     </label>
+    <p class="eroare-camp" th:if="${#fields.hasErrors('parola')}" th:errors="*{parola}"></p>
+
     <button type="submit">Creează cont</button>
 </form>
 </body>
