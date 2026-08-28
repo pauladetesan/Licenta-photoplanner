@@ -31,7 +31,7 @@ public class SecurityConfig {
             // Înainte de verificarea parolei: vezi FiltruProtectieLogin.
             .addFilterBefore(filtruProtectieLogin, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/inregistrare", "/login", "/error", "/css/**", "/js/**", "/h2-console/**").permitAll()
+                .requestMatchers("/", "/inregistrare", "/login", "/error", "/css/**", "/js/**").permitAll()
                 // Resetarea parolei e, prin natura ei, pentru cine nu se poate autentifica.
                 .requestMatchers("/parola-uitata", "/reseteaza-parola").permitAll()
                 .requestMatchers(HttpMethod.GET, "/locatii/noua").authenticated()
@@ -49,9 +49,13 @@ public class SecurityConfig {
                 .defaultSuccessUrl("/locatii/mele", true)
                 .permitAll()
             )
-            .logout(logout -> logout.logoutSuccessUrl("/").permitAll())
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+            /*
+             * Aici stăteau o scutire de CSRF și o slăbire a lui X-Frame-Options, amândouă numai
+             * pentru consola H2. Consola a fost scoasă, deci au plecat și ele: CSRF acoperă din
+             * nou tot, iar antetul revine la DENY — aplicația n-are de ce să fie pusă în cadrul
+             * altcuiva.
+             */
+            .logout(logout -> logout.logoutSuccessUrl("/").permitAll());
 
         return http.build();
     }
