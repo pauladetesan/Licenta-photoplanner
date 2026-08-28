@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Înregistrare — PhotoPlanner</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px; max-width: 420px; }
+        label { display: block; margin-top: 14px; font-size: 14px; }
+        input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+        button { margin-top: 20px; padding: 10px 20px; cursor: pointer; }
+        .eroare { color: #c0392b; background: #fdecea; padding: 10px; margin-top: 16px; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<h1>Creare cont</h1>
+
+<div class="eroare" th:if="${eroare}" th:text="${eroare}"></div>
+
+<form th:action="@{/inregistrare}" method="post">
+    <label>Nume afișat
+        <input type="text" name="numeAfisat" required>
+    </label>
+    <label>Email
+        <input type="email" name="email" required>
+    </label>
+    <label>Parolă (minim 8 caractere)
+        <input type="password" name="parola" required minlength="8">
+    </label>
+    <button type="submit">Creează cont</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titlu}">PhotoPlanner</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px auto; max-width: 900px; padding: 0 20px; }
+        h1 { color: #2c3e50; margin-bottom: 4px; }
+        .subtitlu { color: #666; margin-top: 0; }
+        .antet { display: flex; justify-content: space-between; align-items: baseline;
+                 flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        .antet nav { font-size: 14px; }
+        a { color: #2c3e50; }
+
+        #harta { height: 460px; border-radius: 10px; border: 1px solid #ddd; margin-top: 18px;
+                 background: #f4f4f4; }
+        .harta-stare { font-size: 13px; color: #888; margin-top: 10px; min-height: 18px; }
+        .legenda { font-size: 12px; color: #777; margin-top: 6px; display: flex; gap: 16px;
+                   flex-wrap: wrap; align-items: center; }
+        .legenda span { display: inline-flex; align-items: center; gap: 6px; }
+        .bulina { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+        .bulina.publica { background: #3b82c4; }
+        .bulina.privata { background: #e0a020; }
+        /* Marcatorul locațiilor private: desenat din CSS, ca să nu depindem de altă imagine. */
+        .marcator-privat { background: #e0a020; border: 2px solid white; border-radius: 50%;
+                           box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+        .popup-privat { display: inline-block; background: #fff5e0; color: #8a6d1f;
+                        border-radius: 10px; padding: 1px 8px; font-size: 10px;
+                        text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+
+        .popup-nume { font-size: 14px; font-weight: 600; color: #2c3e50; display: block;
+                      margin-bottom: 4px; }
+        .popup-teme { color: #667; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .popup img { width: 180px; height: 100px; object-fit: cover; border-radius: 6px;
+                     display: block; margin: 6px 0; background: #eee; }
+        .popup a.detalii { font-size: 13px; }
+
+        .actiuni { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .actiuni a { display: inline-block; padding: 9px 16px; border-radius: 8px;
+                     text-decoration: none; font-size: 14px; }
+        .primar { background: #2c3e50; color: white; }
+        .secundar { border: 1px solid #ccc; color: #2c3e50; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<div class="antet">
+    <div>
+        <h1 th:text="${titlu}">PhotoPlanner</h1>
+        <p class="subtitlu" th:text="${mesaj}">Mesaj</p>
+    </div>
+    <nav>
+        <a th:href="@{/locatii}">Locații publice</a>
+        <span sec:authorize="isAuthenticated()"> · <a th:href="@{/locatii/mele}">Locațiile mele</a>
+            · <a th:href="@{/favorite}">Favorite</a>
+            · <a th:href="@{/sesiuni}">Sesiuni</a>
+            · <a th:href="@{/cont}">Contul meu</a> · <a th:href="@{/logout}">Delogare</a></span>
+        <span sec:authorize="!isAuthenticated()"> · <a th:href="@{/inregistrare}">Creează cont</a>
+            · <a th:href="@{/login}">Autentificare</a></span>
+    </nav>
+</div>
+
+<p class="ramas-bun" th:if="${param.cont}" style="background:#eafaf1;color:#2c662d;padding:12px 14px;border-radius:8px;font-size:14px">
+    Contul tău a fost șters, împreună cu datele tale. Îți mulțumim că ai folosit PhotoPlanner.
+</p>
+
+<div id="harta"></div>
+<p class="harta-stare" id="harta-stare">Se încarcă locațiile...</p>
+<div class="legenda" id="legenda" style="display:none">
+    <span><i class="bulina publica"></i> Locații publice</span>
+    <span><i class="bulina privata"></i> Locațiile tale private — vizibile doar ție</span>
+</div>
+
+<div class="actiuni">
+    <a class="primar" sec:authorize="isAuthenticated()" th:href="@{/locatii/noua}">+ Adaugă o locație</a>
+    <a class="primar" sec:authorize="!isAuthenticated()" th:href="@{/inregistrare}">Creează un cont</a>
+    <a class="secundar" th:href="@{/locatii}">Vezi lista completă</a>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:inline="none">
+    var harta = L.map('harta').setView([45.9, 25.0], 6); // România, ca punct de plecare
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(harta);
+
+    var stare = document.getElementById('harta-stare');
+
+    /*
+     * Conținutul popup-ului se construiește cu noduri DOM, nu prin lipire de HTML.
+     * Numele și temele vin de la utilizatori, iar pagina asta o vede oricine: pusă în innerHTML,
+     * o denumire de locație ar putea executa cod în browserul altcuiva.
+     */
+    function continutPopup(locatie) {
+        var cutie = document.createElement('div');
+        cutie.className = 'popup';
+
+        if (locatie.privata) {
+            var eticheta = document.createElement('span');
+            eticheta.className = 'popup-privat';
+            eticheta.textContent = 'Privată';
+            cutie.appendChild(eticheta);
+        }
+
+        var nume = document.createElement('strong');
+        nume.className = 'popup-nume';
+        nume.textContent = locatie.nume;
+        cutie.appendChild(nume);
+
+        if (locatie.teme && locatie.teme.length) {
+            var teme = document.createElement('div');
+            teme.className = 'popup-teme';
+            teme.textContent = locatie.teme.join(' · ');
+            cutie.appendChild(teme);
+        }
+
+        if (locatie.coperta) {
+            var poza = document.createElement('img');
+            poza.src = '/poze/' + encodeURIComponent(locatie.coperta) + '/mica';
+            poza.alt = '';
+            poza.loading = 'lazy';
+            cutie.appendChild(poza);
+        }
+
+        var link = document.createElement('a');
+        link.className = 'detalii';
+        link.href = '/locatii/' + encodeURIComponent(locatie.id);
+        link.textContent = 'Vezi detalii și orele de lumină →';
+        cutie.appendChild(link);
+
+        return cutie;
+    }
+
+    fetch('/api/locatii-harta')
+        .then(function (r) {
+            if (!r.ok) { throw new Error('răspuns ' + r.status); }
+            return r.json();
+        })
+        .then(function (locatii) {
+            if (!locatii.length) {
+                stare.textContent = 'Nicio locație publică încă — prima poate fi a ta.';
+                return;
+            }
+
+            var iconPrivat = L.divIcon({
+                className: 'marcator-privat',
+                iconSize: [15, 15],
+                iconAnchor: [7, 7],
+                popupAnchor: [0, -8]
+            });
+
+            var marcatori = locatii.map(function (l) {
+                var optiuni = l.privata ? { icon: iconPrivat } : {};
+                return L.marker([l.latitudine, l.longitudine], optiuni)
+                        .bindPopup(continutPopup(l))
+                        .addTo(harta);
+            });
+
+            if (locatii.some(function (l) { return l.privata; })) {
+                document.getElementById('legenda').style.display = 'flex';
+            }
+
+            /*
+             * Încadrăm harta pe ce există, ca să se vadă tot fără să caute nimeni.
+             * Fără `animate: false`, încadrarea se face printr-o animație care are nevoie de
+             * cadre de randare: într-un tab de fundal acestea sunt oprite, animația nu se
+             * termină niciodată, iar harta rămâne pe poziția inițială. Oricum nu are ce anima
+             * la prima afișare.
+             */
+            harta.fitBounds(L.featureGroup(marcatori).getBounds().pad(0.2), { animate: false });
+
+            var nrPrivate = locatii.filter(function (l) { return l.privata; }).length;
+            var nrPublice = locatii.length - nrPrivate;
+            stare.textContent = nrPrivate
+                ? nrPublice + ' locații publice și ' + nrPrivate + ' private ale tale. Dă click pe un marcator.'
+                : nrPublice + ' locații publice pe hartă. Dă click pe un marcator.';
+        })
+        .catch(function () {
+            stare.textContent = 'Locațiile nu au putut fi încărcate. Încearcă să reîncarci pagina.';
+        });
+</script>
+</body>
+</html>

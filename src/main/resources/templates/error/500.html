@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ceva n-a mers — PhotoPlanner</title>
+    <link rel="stylesheet" th:href="@{/css/eroare.css}">
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<p class="cod">Eroare 500</p>
+<h1>Ceva n-a mers la noi</h1>
+<p class="explicatie">Nu e din vina ta — a apărut o problemă pe server în timp ce pregăteam pagina.</p>
+<p class="explicatie">Încearcă din nou peste câteva momente. Dacă se repetă, spune-ne ce făceai când s-a întâmplat.</p>
+
+<div class="actiuni">
+    <a class="primar" th:href="@{/}">Înapoi la hartă</a>
+    <a class="secundar" th:href="@{/locatii}">Locații publice</a>
+</div>
+</body>
+</html>

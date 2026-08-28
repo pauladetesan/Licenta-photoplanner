@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Parolă nouă — PhotoPlanner</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px; max-width: 420px; }
+        h1 { color: #2c3e50; font-size: 24px; }
+        label { display: block; margin-top: 14px; font-size: 14px; }
+        input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; font-family: inherit; }
+        button { margin-top: 20px; padding: 10px 20px; cursor: pointer; }
+        .eroare { color: #a5281b; background: #fdecea; padding: 12px 14px; margin-top: 18px;
+                  border-radius: 8px; font-size: 14px; }
+        .indiciu { color: #777; font-size: 13px; margin-top: 10px; }
+        a { color: #2c3e50; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<h1>Alege o parolă nouă</h1>
+
+<div th:if="${tokenInvalid}">
+    <div class="eroare">
+        Linkul de resetare nu este valabil. Se poate să fi expirat, să fi fost deja folosit
+        sau să fie incomplet.
+    </div>
+    <p class="indiciu"><a th:href="@{/parola-uitata}">Cere un link nou</a></p>
+</div>
+
+<form th:unless="${tokenInvalid}" th:action="@{/reseteaza-parola}" method="post">
+    <div class="eroare" th:if="${eroare}" th:text="${eroare}"></div>
+
+    <input type="hidden" name="token" th:value="${token}">
+    <label>Parolă nouă (minim 8 caractere)
+        <input type="password" name="parola" required minlength="8" autofocus>
+    </label>
+    <label>Repetă parola
+        <input type="password" name="parolaRepetata" required minlength="8">
+    </label>
+    <button type="submit">Salvează parola</button>
+</form>
+
+<p style="margin-top:24px"><a th:href="@{/login}">← Înapoi la autentificare</a></p>
+</body>
+</html>

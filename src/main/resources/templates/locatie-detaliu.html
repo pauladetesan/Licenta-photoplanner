@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${locatie.nume} + ' — PhotoPlanner'">Locație — PhotoPlanner</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px; max-width: 700px; }
+        h1 { color: #2c3e50; margin-bottom: 4px; }
+        .antet { margin-bottom: 24px; }
+        .meta { color: #666; font-size: 13px; }
+        .teme span { display: inline-block; background: #eef2f7; color: #2c3e50; border-radius: 12px;
+                     padding: 2px 10px; margin: 6px 4px 0 0; font-size: 12px; }
+        .vizibilitate { display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+                        padding: 3px 10px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+        .vizibilitate.PUBLICA { background: #eafaf1; color: #2c662d; }
+        .vizibilitate.PRIVATA { background: #f4f4f4; color: #666; }
+        .lumina { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+        .lumina div { background: #fafafa; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
+        .lumina .titlu { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .actiuni { margin-top: 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .actiuni form { margin: 0; }
+        .favorit-buton { padding: 8px 16px; border-radius: 6px; border: 1px solid #ddd; background: white;
+                         cursor: pointer; font-size: 14px; }
+        .favorit-buton.activ { background: #fff5e0; border-color: #e0b34d; color: #8a6d1f; }
+        .planifica-buton { padding: 8px 16px; border-radius: 6px; border: 1px solid #ddd;
+                           background: white; font-size: 14px; text-decoration: none;
+                           display: inline-block; }
+        .comentarii { margin-top: 36px; }
+        .comentarii h2 { font-size: 18px; }
+        .comentariu { border-top: 1px solid #eee; padding: 12px 0; }
+        .comentariu .autor { font-weight: 600; font-size: 13px; }
+        .comentariu .data { color: #999; font-size: 12px; margin-left: 8px; }
+        .comentariu p { margin: 4px 0 0; font-size: 14px; }
+        .sterge-comentariu { font-size: 12px; margin-left: 10px; }
+        textarea { width: 100%; padding: 8px; box-sizing: border-box; font-family: inherit; margin-top: 8px; }
+        .link-buton { background: none; border: none; padding: 0; margin: 0; font: inherit; color: #c0392b;
+                      cursor: pointer; text-decoration: underline; }
+        .preluata { display: inline-block; background: #f0f4ff; color: #3a4a7a; border-radius: 10px;
+                    padding: 2px 9px; font-size: 11px; margin-top: 6px; }
+        a { color: #2c3e50; }
+
+        .data-bloc { margin-top: 24px; padding: 14px 16px; background: #f7f9fb; border-radius: 8px; }
+        .data-bloc form { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin: 0; }
+        .data-bloc label { font-size: 13px; color: #555; }
+        .data-bloc input { padding: 7px; font-family: inherit; font-size: 14px; margin-top: 4px; display: block; }
+        .data-bloc button { padding: 7px 14px; cursor: pointer; font-size: 14px; }
+        .data-bloc .scurtaturi { font-size: 12px; margin: 8px 0 0; color: #888; }
+        .data-bloc .scurtaturi a { margin-right: 10px; }
+        .zi-aleasa { font-size: 13px; color: #666; margin-top: 10px; }
+
+        .lumini { margin-top: 28px; }
+        .lumini h2 { font-size: 18px; margin-bottom: 4px; }
+        .lumina-card { display: flex; gap: 18px; align-items: center; border: 1px solid #eee;
+                       border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+        .lumina-card .text { flex: 1; }
+        .lumina-card .moment { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: .04em; }
+        .lumina-card .eticheta { font-size: 16px; font-weight: 600; color: #2c3e50; margin-top: 2px; }
+        .lumina-card .explicatie { font-size: 13px; color: #555; margin: 6px 0 0; }
+        .lumina-card .unghiuri { font-size: 12px; color: #999; margin-top: 6px; }
+
+        .compas { position: relative; width: 84px; height: 84px; border: 1px solid #ddd;
+                  border-radius: 50%; flex-shrink: 0; background: white; }
+        .compas .nord { position: absolute; top: 3px; left: 50%; transform: translateX(-50%);
+                        font-size: 10px; color: #bbb; }
+        .compas .centru { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px;
+                          background: #ccc; border-radius: 50%; }
+        .compas .raza { position: absolute; inset: 0; }
+        .compas .raza span { position: absolute; top: 4px; left: 50%; margin-left: -6px;
+                             width: 12px; text-align: center; font-size: 12px; line-height: 1; }
+        .compas .privire span { color: #2c3e50; }
+        .compas .soare span { color: #e0a020; font-size: 14px; }
+        .legenda { font-size: 11px; color: #999; margin-top: 10px; }
+        .fara-orientare { margin-top: 12px; padding: 12px 14px; background: #fffaf0; border-radius: 8px;
+                          font-size: 13px; color: #7a6320; }
+
+        .luna { margin-top: 28px; }
+        .luna h2 { font-size: 18px; margin-bottom: 4px; }
+        .luna-card { display: flex; gap: 18px; align-items: center; border: 1px solid #eee;
+                     border-radius: 8px; padding: 14px 16px; margin-top: 12px; background: #fbfbfd; }
+        .luna-simbol { font-size: 40px; line-height: 1; flex-shrink: 0; }
+        .luna-card .faza { font-size: 16px; font-weight: 600; color: #2c3e50; }
+        .luna-card .verdict { font-size: 13px; color: #555; margin: 6px 0 0; }
+        .luna-detalii { margin-top: 12px; display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+        .luna-detalii div { background: #fafafa; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
+        .luna-detalii .titlu { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+
+        .galerie { margin-top: 28px; }
+        .galerie h2 { font-size: 18px; margin-bottom: 4px; }
+        .poze-grila { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                      gap: 10px; margin-top: 12px; }
+        .poza-item { position: relative; }
+        .poza-item img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px;
+                         border: 1px solid #eee; display: block; background: #f4f4f4; }
+        .poza-sterge { position: absolute; top: 6px; right: 6px; margin: 0; padding: 2px 7px;
+                       font-size: 12px; line-height: 1.4; border-radius: 6px; border: none;
+                       background: rgba(0,0,0,.55); color: white; cursor: pointer; min-height: 0; }
+        .incarcare { margin-top: 14px; padding: 14px 16px; background: #fafafa;
+                     border: 1px dashed #ccc; border-radius: 8px; }
+        .incarcare input[type=file] { font-size: 13px; }
+        .incarcare button { margin-top: 10px; padding: 7px 14px; cursor: pointer; font-size: 14px; }
+        .incarcare .indiciu { color: #888; font-size: 12px; margin: 8px 0 0; }
+        .fara-poze { color: #888; font-size: 14px; margin-top: 10px; }
+        .eroare-poza { color: #c0392b; background: #fdecea; padding: 10px 12px;
+                       border-radius: 6px; margin-top: 12px; font-size: 13px; }
+
+        .vreme { margin-top: 28px; }
+        .vreme h2 { font-size: 18px; margin-bottom: 4px; }
+        .vreme-grila { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                       gap: 12px; margin-top: 12px; }
+        .vreme-card { border: 1px solid #eee; border-radius: 8px; padding: 14px 16px; background: #fbfcfd; }
+        .vreme-card .moment { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: .04em; }
+        .vreme-card .nori { font-size: 22px; font-weight: 600; color: #2c3e50; margin-top: 4px; }
+        .vreme-card .nori span { font-size: 14px; font-weight: 400; color: #666; }
+        .vreme-card .verdict { font-size: 13px; color: #555; margin: 8px 0 0; }
+        .vreme-card .detalii { font-size: 12px; color: #999; margin-top: 8px; }
+        .vreme-card .ploaie { color: #b06a00; }
+        .vreme-lipsa { margin-top: 12px; padding: 12px 14px; background: #fafafa; border-radius: 8px;
+                       font-size: 13px; color: #777; }
+        .vreme-sursa { font-size: 11px; color: #aaa; margin-top: 10px; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<div class="antet">
+    <a th:href="@{/}">Acasă</a> · <a th:href="@{/locatii}">Locații publice</a>
+    <span sec:authorize="isAuthenticated()"> · <a th:href="@{/locatii/mele}">Locațiile mele</a>
+        · <a th:href="@{/favorite}">Favorite</a>
+            · <a th:href="@{/sesiuni}">Sesiuni</a>
+            · <a th:href="@{/cont}">Contul meu</a> · <a th:href="@{/logout}">Delogare</a></span>
+    <span sec:authorize="!isAuthenticated()"> · <a th:href="@{/login}">Autentificare</a></span>
+</div>
+
+<h1>
+    <span th:text="${locatie.nume}">Nume locație</span>
+    <span class="vizibilitate" th:classappend="${locatie.vizibilitate}" th:text="${locatie.vizibilitate}">VIZIBILITATE</span>
+</h1>
+<p class="meta">
+    Adăugată de <span th:text="${locatie.autor.numeAfisat}">Autor</span> ·
+    <span th:text="${#numbers.formatDecimal(locatie.latitudine,1,'NONE',3,'POINT')} + ', ' + ${#numbers.formatDecimal(locatie.longitudine,1,'NONE',3,'POINT')}">lat, lon</span>
+    <span th:if="${locatie.orientareScena != null}" th:text="'· orientare ' + ${locatie.orientareScena} + '°'"></span>
+</p>
+<p class="preluata" th:if="${locatie.estePreluata()}"
+   th:text="'Loc găsit de ' + ${locatie.preluataDeLa} + ', salvat în portofoliul tău'"></p>
+<p th:if="${locatie.descriere}" th:text="${locatie.descriere}">Descriere</p>
+<div class="teme" th:if="${!locatie.teme.isEmpty()}">
+    <span th:each="tema : ${locatie.teme}" th:text="${tema}">TEMA</span>
+</div>
+
+<div class="galerie">
+    <h2>Fotografii</h2>
+
+    <div class="eroare-poza" th:if="${eroarePoza}" th:text="${eroarePoza}"></div>
+
+    <p class="fara-poze" th:if="${fotografii.isEmpty()}">
+        Nicio fotografie încă.
+        <span th:if="${esteAutor}">Încarcă una mai jos ca să știi cum arată locul.</span>
+    </p>
+
+    <div class="poze-grila" th:if="${!fotografii.isEmpty()}">
+        <div class="poza-item" th:each="f : ${fotografii}">
+            <a th:href="@{/poze/{id}(id=${f.id})}" target="_blank">
+                <img th:src="@{/poze/{id}/mica(id=${f.id})}" loading="lazy"
+                     th:alt="${f.numeOriginal} ?: 'Fotografie'">
+            </a>
+            <form th:if="${esteAutor}" th:action="@{/poze/{id}/sterge(id=${f.id})}" method="post"
+                  onsubmit="return confirm('Ștergi această fotografie?');">
+                <button type="submit" class="poza-sterge" title="Șterge fotografia">✕</button>
+            </form>
+        </div>
+    </div>
+
+    <form th:if="${esteAutor}" class="incarcare" th:action="@{/locatii/{id}/poze(id=${locatie.id})}"
+          method="post" enctype="multipart/form-data">
+        <label>Adaugă o fotografie
+            <input type="file" name="poza" accept="image/*" required>
+        </label>
+        <button type="submit">Încarcă</button>
+        <p class="indiciu">Maximum 12 fotografii pe locație, cel mult 20 MB fiecare.</p>
+    </form>
+</div>
+
+<div class="data-bloc">
+    <form th:action="@{/locatii/{id}(id=${locatie.id})}" method="get">
+        <label>Planifică pentru ziua
+            <input type="date" name="data" th:value="${data}">
+        </label>
+        <button type="submit">Arată lumina</button>
+    </form>
+    <p class="scurtaturi">
+        <a th:href="@{/locatii/{id}(id=${locatie.id})}">Azi</a>
+        <a th:href="@{/locatii/{id}(id=${locatie.id}, data=${T(java.time.LocalDate).now().plusDays(1)})}">Mâine</a>
+        <a th:href="@{/locatii/{id}(id=${locatie.id}, data=${T(java.time.LocalDate).now().plusWeeks(1)})}">Peste o săptămână</a>
+        <a th:href="@{/locatii/{id}(id=${locatie.id}, data=${T(java.time.LocalDate).now().plusMonths(1)})}">Peste o lună</a>
+    </p>
+    <p class="zi-aleasa">
+        <strong th:text="${#temporals.format(data, 'dd MMMM yyyy')}">data</strong>
+        <span th:if="${esteAzi}"> — azi</span>
+        · orele sunt în ora locală a locației:
+        <span th:text="${zonaLocatiei}">Europe/Paris</span>
+        (<span th:text="${etichetaZona}">CET, UTC+01:00</span>)
+    </p>
+</div>
+
+<div class="lumina">
+    <div>
+        <div class="titlu">Răsărit</div>
+        <div th:text="${#temporals.format(infoSoare.rasarit, 'HH:mm')}">--:--</div>
+    </div>
+    <div>
+        <div class="titlu">Apus</div>
+        <div th:text="${#temporals.format(infoSoare.apus, 'HH:mm')}">--:--</div>
+    </div>
+    <div>
+        <div class="titlu">Oră de aur — dimineață</div>
+        <div th:text="${#temporals.format(infoSoare.oraDeAurDimineataStart, 'HH:mm')} + ' – ' + ${#temporals.format(infoSoare.oraDeAurDimineataStop, 'HH:mm')}">--:-- – --:--</div>
+    </div>
+    <div>
+        <div class="titlu">Oră de aur — seară</div>
+        <div th:text="${#temporals.format(infoSoare.oraDeAurSearaStart, 'HH:mm')} + ' – ' + ${#temporals.format(infoSoare.oraDeAurSearaStop, 'HH:mm')}">--:-- – --:--</div>
+    </div>
+</div>
+
+<div class="lumini">
+    <h2>Cum cade lumina pe scenă</h2>
+
+    <div th:if="${luminiOreDeAur == null}" class="fara-orientare">
+        Această locație nu are salvată orientarea scenei, așa că nu putem spune din ce direcție vine lumina.
+        <span th:if="${esteAutor}">
+            <a th:href="@{/locatii/{id}/editare(id=${locatie.id})}">Adaug-o la editare</a> — e unghiul în care privește aparatul.
+        </span>
+    </div>
+
+    <div th:if="${luminiOreDeAur != null}">
+        <p class="meta">Aparatul privește spre <strong th:text="${locatie.orientareScena} + '°'">0°</strong>.</p>
+
+        <div class="lumina-card" th:each="l : ${luminiOreDeAur}">
+            <div class="compas">
+                <span class="nord">N</span>
+                <span class="centru"></span>
+                <div class="raza privire" th:style="'transform: rotate(' + ${locatie.orientareScena} + 'deg)'">
+                    <span>▲</span>
+                </div>
+                <div class="raza soare" th:style="'transform: rotate(' + ${l.azimutSoare} + 'deg)'">
+                    <span>●</span>
+                </div>
+            </div>
+            <div class="text">
+                <div class="moment">
+                    <span th:text="${l.moment}">Moment</span> ·
+                    <span th:text="${#temporals.format(l.cand, 'HH:mm')}">--:--</span>
+                </div>
+                <div class="eticheta" th:text="${l.tip.eticheta}">Tip lumină</div>
+                <p class="explicatie" th:text="${l.tip.explicatie}">Explicație</p>
+                <div class="unghiuri">
+                    Soarele la <span th:text="${#numbers.formatDecimal(l.azimutSoare,1,0)} + '°'">0°</span> azimut,
+                    <span th:text="${#numbers.formatDecimal(l.inaltimeSoare,1,0)} + '°'">0°</span> deasupra orizontului
+                    · <span th:text="${l.unghiRelativ} + '° față de direcția de fotografiere'">0°</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="legenda">▲ direcția în care privești · ● poziția soarelui · N = nord (sus)</p>
+    </div>
+</div>
+
+<div class="vreme">
+    <h2>Vremea la orele de aur</h2>
+
+    <div class="vreme-lipsa" th:if="${!infoVreme.disponibil}" th:text="${infoVreme.mesaj}">
+        Prognoza nu este disponibilă.
+    </div>
+
+    <div class="vreme-grila" th:if="${infoVreme.disponibil}">
+        <div class="vreme-card" th:if="${infoVreme.dimineata != null}">
+            <div class="moment">
+                Dimineață · <span th:text="${#temporals.format(infoSoare.mijlocDimineata(), 'HH:mm')}">--:--</span>
+            </div>
+            <div class="nori">
+                <span th:remove="tag" th:text="${infoVreme.dimineata.nori} + '%'">0%</span>
+                <span th:text="'nori · ' + ${infoVreme.dimineata.eticheta()}">nori</span>
+            </div>
+            <p class="verdict" th:text="${infoVreme.dimineata.verdict()}">Verdict</p>
+            <div class="detalii">
+                <span th:if="${infoVreme.dimineata.temperatura != null}"
+                      th:text="${infoVreme.dimineata.temperatura} + ' °C'">-- °C</span>
+                <span th:if="${infoVreme.dimineata.precipitatie != null}"
+                      th:classappend="${infoVreme.dimineata.plouaProbabil()} ? 'ploaie' : ''"
+                      th:text="'· ' + ${infoVreme.dimineata.precipitatie} + '% șanse de precipitații'"></span>
+            </div>
+        </div>
+
+        <div class="vreme-card" th:if="${infoVreme.seara != null}">
+            <div class="moment">
+                Seară · <span th:text="${#temporals.format(infoSoare.mijlocSeara(), 'HH:mm')}">--:--</span>
+            </div>
+            <div class="nori">
+                <span th:remove="tag" th:text="${infoVreme.seara.nori} + '%'">0%</span>
+                <span th:text="'nori · ' + ${infoVreme.seara.eticheta()}">nori</span>
+            </div>
+            <p class="verdict" th:text="${infoVreme.seara.verdict()}">Verdict</p>
+            <div class="detalii">
+                <span th:if="${infoVreme.seara.temperatura != null}"
+                      th:text="${infoVreme.seara.temperatura} + ' °C'">-- °C</span>
+                <span th:if="${infoVreme.seara.precipitatie != null}"
+                      th:classappend="${infoVreme.seara.plouaProbabil()} ? 'ploaie' : ''"
+                      th:text="'· ' + ${infoVreme.seara.precipitatie} + '% șanse de precipitații'"></span>
+            </div>
+        </div>
+    </div>
+
+    <p class="vreme-sursa" th:if="${infoVreme.disponibil}">
+        Prognoză de la <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a>.
+    </p>
+</div>
+
+<div class="luna">
+    <h2>Luna</h2>
+
+    <div class="luna-card">
+        <div class="luna-simbol" th:text="${infoLuna.faza.simbol}">🌒</div>
+        <div>
+            <div class="faza">
+                <span th:text="${infoLuna.faza.eticheta}">Faza</span> ·
+                <span th:text="${infoLuna.procentIluminat()} + '% luminată'">0% luminată</span>
+            </div>
+            <p class="verdict" th:text="${infoLuna.verdictAstro()}">Verdict astro</p>
+        </div>
+    </div>
+
+    <div class="luna-detalii">
+        <div>
+            <div class="titlu">Răsăritul lunii</div>
+            <div th:if="${infoLuna.rasarit != null}" th:text="${#temporals.format(infoLuna.rasarit, 'HH:mm')}">--:--</div>
+            <div th:if="${infoLuna.rasarit == null}" th:text="${infoLuna.mereuDeasupra} ? 'nu apune' : '—'">—</div>
+        </div>
+        <div>
+            <div class="titlu">Apusul lunii</div>
+            <div th:if="${infoLuna.apus != null}" th:text="${#temporals.format(infoLuna.apus, 'HH:mm')}">--:--</div>
+            <div th:if="${infoLuna.apus == null}" th:text="${infoLuna.mereuSubOrizont} ? 'nu răsare' : '—'">—</div>
+        </div>
+        <div>
+            <div class="titlu">Următoarea lună nouă</div>
+            <div th:text="${#temporals.format(infoLuna.urmatoareaLunaNoua, 'dd MMM, HH:mm')}">--</div>
+        </div>
+        <div>
+            <div class="titlu">Următoarea lună plină</div>
+            <div th:text="${#temporals.format(infoLuna.urmatoareaLunaPlina, 'dd MMM, HH:mm')}">--</div>
+        </div>
+    </div>
+</div>
+
+<div class="actiuni">
+    <a sec:authorize="isAuthenticated()" class="planifica-buton"
+       th:href="@{/sesiuni/noua(locatie=${locatie.id})}">📅 Planifică o sesiune aici</a>
+
+    <form sec:authorize="isAuthenticated()" th:action="@{/locatii/{id}/favorit(id=${locatie.id})}" method="post">
+        <input type="hidden" name="data" th:value="${data}">
+        <button type="submit" class="favorit-buton" th:classappend="${esteFavorit} ? 'activ' : ''"
+                th:text="${esteFavorit} ? '★ La favorite' : '☆ Adaugă la favorite'"></button>
+    </form>
+    <span class="meta"
+          th:text="${numarFavorite + (numarFavorite == 1 ? ' persoană a adăugat-o la favorite' : ' persoane au adăugat-o la favorite')}"></span>
+
+    <span th:if="${esteAutor}">
+        <a th:href="@{/locatii/{id}/editare(id=${locatie.id})}">Editează</a>
+        <form th:action="@{/locatii/{id}/sterge(id=${locatie.id})}" method="post" style="display:inline"
+              onsubmit="return confirm('Sigur ștergi această locație? Nu poate fi anulat.');">
+            <button type="submit" class="link-buton">Șterge</button>
+        </form>
+    </span>
+</div>
+
+<div class="comentarii">
+    <h2 th:text="'Comentarii (' + ${comentarii.size()} + ')'">Comentarii</h2>
+
+    <p th:if="${comentarii.isEmpty()}" class="meta">Niciun comentariu încă.</p>
+    <div class="comentariu" th:each="c : ${comentarii}">
+        <span class="autor" th:text="${c.autor.numeAfisat}">Autor</span>
+        <span class="data" th:text="${#temporals.format(c.dataAdaugare, 'dd.MM.yyyy HH:mm')}">data</span>
+        <!-- Butonul apare pentru autorul comentariului și pentru autorul locației. -->
+        <form th:if="${utilizatorCurentId != null and (esteAutor or c.autor.id == utilizatorCurentId)}"
+              th:action="@{/comentarii/{id}/sterge(id=${c.id})}" method="post"
+              style="display:inline"
+              onsubmit="return confirm('Ștergi acest comentariu?');">
+            <input type="hidden" name="data" th:value="${data}">
+            <button type="submit" class="link-buton sterge-comentariu">Șterge</button>
+        </form>
+        <p th:text="${c.continut}">Text comentariu</p>
+    </div>
+
+    <form sec:authorize="isAuthenticated()" th:action="@{/locatii/{id}/comentarii(id=${locatie.id})}" method="post">
+        <input type="hidden" name="data" th:value="${data}">
+        <label>Adaugă un comentariu
+            <textarea name="continut" rows="3" maxlength="1000" required></textarea>
+        </label>
+        <button type="submit">Trimite</button>
+    </form>
+    <p sec:authorize="!isAuthenticated()" class="meta"><a th:href="@{/login}">Autentifică-te</a> pentru a comenta.</p>
+</div>
+</body>
+</html>

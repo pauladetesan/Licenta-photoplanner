@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Planifică o sesiune — PhotoPlanner</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px auto; max-width: 520px; padding: 0 20px; }
+        h1 { color: #2c3e50; font-size: 24px; margin-bottom: 4px; }
+        .locatie { color: #666; margin-top: 0; font-size: 15px; }
+        label { display: block; margin-top: 16px; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 8px; margin-top: 4px;
+                                  box-sizing: border-box; font-family: inherit; font-size: 15px; }
+        button { margin-top: 22px; padding: 10px 20px; cursor: pointer; font-size: 15px; }
+        .indiciu { color: #888; font-size: 13px; margin-top: 6px; }
+        .portofoliu { margin-top: 20px; padding: 12px 14px; background: #f7f9fb;
+                      border-radius: 8px; }
+        .portofoliu label { margin-top: 0; font-size: 14px; }
+        .portofoliu input { width: auto; margin-right: 6px; }
+        a { color: #2c3e50; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<h1>Planifică o sesiune</h1>
+<p class="locatie" th:text="${locatie.nume}">Locație</p>
+
+<form th:action="@{/sesiuni}" method="post">
+    <input type="hidden" name="locatie" th:value="${locatie.id}">
+
+    <label>Ziua
+        <input type="date" name="data" th:value="${dataImplicita}" required>
+    </label>
+    <label>Momentul zilei
+        <select name="moment">
+            <option th:each="m : ${momente}" th:value="${m}" th:text="${m.eticheta}"
+                    th:selected="${m.name() == 'ORA_AUR_SEARA'}"></option>
+        </select>
+    </label>
+    <p class="indiciu">Ora exactă se calculează pentru locație și ziua aleasă.</p>
+    <label>Notițe (opțional)
+        <textarea name="notite" rows="4" maxlength="1000"
+                  placeholder="ex. obiectiv 35mm, parcare lângă pod, verifică nivelul apei"></textarea>
+    </label>
+    <div class="portofoliu" th:if="${aAltcuiva}">
+        <label>
+            <input type="checkbox" name="inPortofoliu" value="true" checked>
+            Salvează locul și în portofoliul meu
+        </label>
+        <p class="indiciu">
+            Se adaugă la „Locațiile mele” ca locație privată, cu mențiunea cine a găsit-o.
+            Fără asta, sesiunea dispare dacă autorul își șterge locația.
+        </p>
+    </div>
+
+    <button type="submit">Salvează sesiunea</button>
+</form>
+
+<p style="margin-top:24px"><a th:href="@{/locatii/{id}(id=${locatie.id})}">← Înapoi</a></p>
+</body>
+</html>

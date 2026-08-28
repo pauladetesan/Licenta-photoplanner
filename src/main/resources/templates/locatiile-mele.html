@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Locațiile mele — PhotoPlanner</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px; max-width: 780px; }
+        h1 { color: #2c3e50; }
+        .antet { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px 20px; margin-top: 16px; position: relative; }
+        .card h2 { margin: 0 0 4px 0; font-size: 20px; }
+        .card h2 a { color: inherit; text-decoration: none; }
+        .card h2 a:hover { text-decoration: underline; }
+        .meta { color: #666; font-size: 13px; }
+        .teme span { display: inline-block; background: #eef2f7; color: #2c3e50; border-radius: 12px;
+                     padding: 2px 10px; margin: 6px 4px 0 0; font-size: 12px; }
+        .lumina { margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+        .lumina div { background: #fafafa; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
+        .lumina .titlu { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .goala { color: #888; margin-top: 20px; }
+        .preluata { display: inline-block; background: #f0f4ff; color: #3a4a7a; border-radius: 10px;
+                    padding: 2px 9px; font-size: 11px; margin-top: 6px; }
+        .fus { font-size: 11px; color: #aaa; margin-top: 8px; }
+        .vizibilitate { position: absolute; top: 16px; right: 20px; font-size: 11px; text-transform: uppercase;
+                        letter-spacing: .04em; padding: 3px 10px; border-radius: 10px; }
+        .vizibilitate.PUBLICA { background: #eafaf1; color: #2c662d; }
+        .vizibilitate.PRIVATA { background: #f4f4f4; color: #666; }
+        .actiuni { margin-top: 14px; padding-top: 10px; border-top: 1px solid #eee; font-size: 13px; }
+        .actiuni a { color: #2c3e50; margin-right: 14px; }
+        .link-buton { background: none; border: none; padding: 0; margin: 0; font: inherit; color: #c0392b;
+                      cursor: pointer; text-decoration: underline; }
+        .coperta { float: right; width: 110px; height: 80px; object-fit: cover; border-radius: 6px;
+                   border: 1px solid #eee; margin: 0 0 8px 14px; background: #f4f4f4; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<div class="antet">
+    <h1>Locațiile mele</h1>
+    <div>
+        <a th:href="@{/}">Acasă</a> · <a th:href="@{/locatii}">Locații publice</a>
+        · <a th:href="@{/favorite}">Favorite</a>
+            · <a th:href="@{/sesiuni}">Sesiuni</a>
+            · <a th:href="@{/cont}">Contul meu</a>
+        · <a th:href="@{/locatii/noua}">+ Adaugă locație</a>
+        · <a th:href="@{/logout}">Delogare</a>
+    </div>
+</div>
+
+<p class="goala" th:if="${locatii.isEmpty()}">Nu ai adăugat încă nicio locație. <a th:href="@{/locatii/noua}">Adaugă prima</a>.</p>
+
+<div class="card" th:each="intrare : ${locatii}">
+    <span class="vizibilitate" th:classappend="${intrare.key.vizibilitate}" th:text="${intrare.key.vizibilitate}">VIZIBILITATE</span>
+    <a th:if="${coperti.containsKey(intrare.key.id)}" th:href="@{/locatii/{id}(id=${intrare.key.id})}">
+        <img class="coperta" th:src="@{/poze/{p}/mica(p=${coperti.get(intrare.key.id)})}"
+             loading="lazy" alt="Fotografie de la locație">
+    </a>
+    <h2><a th:href="@{/locatii/{id}(id=${intrare.key.id})}" th:text="${intrare.key.nume}">Nume locație</a></h2>
+    <p class="meta">
+        <span th:text="${#numbers.formatDecimal(intrare.key.latitudine,1,'NONE',3,'POINT')} + ', ' + ${#numbers.formatDecimal(intrare.key.longitudine,1,'NONE',3,'POINT')}">lat, lon</span>
+        <span th:if="${intrare.key.orientareScena != null}" th:text="'· orientare ' + ${intrare.key.orientareScena} + '°'"></span>
+    </p>
+    <p class="preluata" th:if="${intrare.key.estePreluata()}"
+       th:text="'Găsit de ' + ${intrare.key.preluataDeLa}"></p>
+    <p th:if="${intrare.key.descriere}" th:text="${intrare.key.descriere}">Descriere</p>
+    <div class="teme" th:if="${!intrare.key.teme.isEmpty()}">
+        <span th:each="tema : ${intrare.key.teme}" th:text="${tema}">TEMA</span>
+    </div>
+
+    <div class="lumina">
+        <div>
+            <div class="titlu">Răsărit</div>
+            <div th:text="${#temporals.format(intrare.value.rasarit, 'HH:mm')}">--:--</div>
+        </div>
+        <div>
+            <div class="titlu">Apus</div>
+            <div th:text="${#temporals.format(intrare.value.apus, 'HH:mm')}">--:--</div>
+        </div>
+        <div>
+            <div class="titlu">Oră de aur — dimineață</div>
+            <div th:text="${#temporals.format(intrare.value.oraDeAurDimineataStart, 'HH:mm')} + ' – ' + ${#temporals.format(intrare.value.oraDeAurDimineataStop, 'HH:mm')}">--:-- – --:--</div>
+        </div>
+        <div>
+            <div class="titlu">Oră de aur — seară</div>
+            <div th:text="${#temporals.format(intrare.value.oraDeAurSearaStart, 'HH:mm')} + ' – ' + ${#temporals.format(intrare.value.oraDeAurSearaStop, 'HH:mm')}">--:-- – --:--</div>
+        </div>
+    </div>
+
+    <p class="fus">Ore locale &middot; <span th:text="${intrare.key.fusOrar}">fus orar</span></p>
+
+    <div class="actiuni">
+        <a th:href="@{/locatii/{id}/editare(id=${intrare.key.id})}">Editează</a>
+        <form th:action="@{/locatii/{id}/sterge(id=${intrare.key.id})}" method="post" style="display:inline"
+              onsubmit="return confirm('Sigur ștergi această locație? Nu poate fi anulat.');">
+            <button type="submit" class="link-buton">Șterge</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

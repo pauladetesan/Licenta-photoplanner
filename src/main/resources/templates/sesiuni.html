@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sesiunile mele — PhotoPlanner</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px auto; max-width: 780px; padding: 0 20px; }
+        h1 { color: #2c3e50; }
+        h2 { font-size: 18px; color: #2c3e50; margin-top: 32px; }
+        .antet { display: flex; justify-content: space-between; align-items: baseline;
+                 flex-wrap: wrap; gap: 12px; }
+        a { color: #2c3e50; }
+
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px 20px; margin-top: 14px; }
+        .card.trecuta { opacity: .65; }
+        .cand { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: .04em; }
+        .card h3 { margin: 4px 0 0; font-size: 18px; }
+        .card h3 a { color: inherit; text-decoration: none; }
+        .card h3 a:hover { text-decoration: underline; }
+        .moment { margin-top: 8px; font-size: 15px; color: #2c3e50; }
+        .moment .ora { font-weight: 600; }
+        .notite { margin: 10px 0 0; font-size: 14px; color: #555; white-space: pre-wrap; }
+        .vreme { margin-top: 10px; font-size: 13px; color: #555; background: #fafafa;
+                 border-radius: 6px; padding: 8px 10px; }
+        .vreme .ploaie { color: #b06a00; }
+        .zile { display: inline-block; background: #eef2f7; color: #2c3e50; border-radius: 10px;
+                padding: 2px 9px; font-size: 12px; margin-left: 6px; }
+        .actiuni { margin-top: 14px; padding-top: 10px; border-top: 1px solid #eee; font-size: 13px; }
+        .actiuni a { margin-right: 14px; }
+        .link-buton { background: none; border: none; padding: 0; margin: 0; font: inherit;
+                      color: #c0392b; cursor: pointer; text-decoration: underline; }
+        .goala { color: #888; margin-top: 16px; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<div class="antet">
+    <h1>Sesiunile mele</h1>
+    <nav>
+        <a th:href="@{/}">Acasă</a> · <a th:href="@{/locatii}">Locații publice</a>
+        · <a th:href="@{/locatii/mele}">Locațiile mele</a> · <a th:href="@{/favorite}">Favorite</a>
+            · <a th:href="@{/cont}">Contul meu</a>
+        · <a th:href="@{/logout}">Delogare</a>
+    </nav>
+</div>
+
+<h2>Ce urmează</h2>
+<p class="goala" th:if="${viitoare.isEmpty()}">
+    Nicio sesiune planificată. Deschide o locație și apasă „Planifică o sesiune aici”.
+</p>
+
+<div class="card" th:each="p : ${viitoare}">
+    <div class="cand">
+        <span th:text="${#temporals.format(p.sesiune.data, 'EEEE, dd MMMM yyyy')}">data</span>
+        <span class="zile" th:with="zile=${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), p.sesiune.data)}"
+              th:text="${zile == 0} ? 'azi' : (${zile == 1} ? 'mâine' : 'peste ' + ${zile} + ' zile')">azi</span>
+    </div>
+    <h3><a th:href="@{/locatii/{id}(id=${p.sesiune.locatie.id}, data=${p.sesiune.data})}"
+           th:text="${p.sesiune.locatie.nume}">Locație</a></h3>
+
+    <div class="moment">
+        <span th:text="${p.sesiune.moment.eticheta}">Moment</span>
+        <span class="ora" th:if="${p.moment != null}"
+              th:text="'· ' + ${#temporals.format(p.moment, 'HH:mm')}">--:--</span>
+        <span th:if="${p.moment == null}"> · ora nu se poate calcula pentru ziua asta</span>
+    </div>
+
+    <p class="notite" th:if="${p.sesiune.notite}" th:text="${p.sesiune.notite}">Notițe</p>
+
+    <div class="vreme" th:if="${p.vreme != null}">
+        <span th:text="${p.vreme.nori} + '% nori · ' + ${p.vreme.eticheta()}">nori</span>
+        <span th:if="${p.vreme.temperatura != null}" th:text="' · ' + ${p.vreme.temperatura} + ' °C'"></span>
+        <span th:if="${p.vreme.plouaProbabil()}" class="ploaie"
+              th:text="' · ' + ${p.vreme.precipitatie} + '% șanse de ploaie'"></span>
+        <div th:text="${p.vreme.verdictPentru(p.sesiune.moment)}">verdict</div>
+    </div>
+
+    <div class="actiuni">
+        <a th:href="@{/sesiuni/{id}/editare(id=${p.sesiune.id})}">Editează</a>
+        <form th:action="@{/sesiuni/{id}/sterge(id=${p.sesiune.id})}" method="post"
+              style="display:inline" onsubmit="return confirm('Ștergi această sesiune planificată?');">
+            <button type="submit" class="link-buton">Șterge</button>
+        </form>
+    </div>
+</div>
+
+<h2 th:if="${!trecute.isEmpty()}">Sesiuni trecute</h2>
+<div class="card trecuta" th:each="p : ${trecute}">
+    <div class="cand" th:text="${#temporals.format(p.sesiune.data, 'dd MMMM yyyy')}">data</div>
+    <h3><a th:href="@{/locatii/{id}(id=${p.sesiune.locatie.id}, data=${p.sesiune.data})}"
+           th:text="${p.sesiune.locatie.nume}">Locație</a></h3>
+    <div class="moment">
+        <span th:text="${p.sesiune.moment.eticheta}">Moment</span>
+        <span class="ora" th:if="${p.moment != null}"
+              th:text="'· ' + ${#temporals.format(p.moment, 'HH:mm')}">--:--</span>
+    </div>
+    <p class="notite" th:if="${p.sesiune.notite}" th:text="${p.sesiune.notite}">Notițe</p>
+    <div class="actiuni">
+        <form th:action="@{/sesiuni/{id}/sterge(id=${p.sesiune.id})}" method="post"
+              style="display:inline" onsubmit="return confirm('Ștergi această sesiune?');">
+            <button type="submit" class="link-buton">Șterge</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+/*
+ * Ajustări pentru ecrane mici.
+ * Se încarcă după blocul <style> din fiecare pagină, ca să poată suprascrie regulile de acolo.
+ */
+
+@media (max-width: 640px) {
+
+    /* Marginea fixă de 40px mănâncă un sfert dintr-un ecran de telefon. */
+    body {
+        margin: 0;
+        padding: 16px 14px 48px;
+        max-width: none;
+    }
+
+    h1 { font-size: 24px; }
+
+    /* Latitudine/longitudine una sub alta, ca să rămână loc de tastat. */
+    .doua-coloane { grid-template-columns: 1fr; }
+
+    /* Busola și textul nu încap una lângă alta pe lățimea unui telefon. */
+    .lumina-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    /* Eticheta de vizibilitate iese din colț ca să nu acopere titlul. */
+    .vizibilitate {
+        position: static;
+        display: inline-block;
+        margin: 0 0 6px 0;
+    }
+
+    .card { padding: 14px 16px; }
+
+    #harta { height: 260px; }
+
+    .antet { gap: 8px; }
+
+    /* Titlul și butonul hărții nu încap pe același rând. */
+    .harta-antet { flex-wrap: wrap; gap: 8px; }
+
+    /*
+     * iOS mărește singur pagina dacă un câmp are textul sub 16px când primește focus.
+     * Selectorii din pagini (.data-bloc input, .poza button) sunt mai specifici decât
+     * un simplu `input`, așa că trebuie repetați aici ca să fie învinși.
+     */
+    input, select, textarea,
+    .data-bloc input,
+    .data-bloc button,
+    .poza button,
+    .harta-antet button {
+        font-size: 16px;
+    }
+}
+
+/* Ținte de atins mai generoase acolo unde se navighează cu degetul. */
+@media (pointer: coarse) {
+    button, .favorit-buton { min-height: 44px; }
+    .actiuni a, .scurtaturi a { display: inline-block; padding: 6px 0; }
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Autentificare — PhotoPlanner</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px; max-width: 420px; }
+        label { display: block; margin-top: 14px; font-size: 14px; }
+        input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+        button { margin-top: 20px; padding: 10px 20px; cursor: pointer; }
+        .eroare { color: #c0392b; background: #fdecea; padding: 10px; margin-top: 16px; }
+        .info { color: #2c662d; background: #eafaf1; padding: 10px; margin-top: 16px; }
+        a { color: #2c3e50; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<h1>Autentificare</h1>
+
+<div class="eroare" th:if="${param.error}">Email sau parolă incorectă.</div>
+<div class="info" th:if="${param.logout}">Ai fost delogat.</div>
+<div class="info" th:if="${param.resetat}">Parola a fost schimbată. Te poți autentifica acum.</div>
+<div class="eroare" th:if="${param.blocat}">
+    Prea multe încercări de autentificare. Încearcă din nou peste câteva minute
+    sau <a th:href="@{/parola-uitata}">resetează-ți parola</a>.
+</div>
+
+<form th:action="@{/login}" method="post">
+    <label>Email
+        <input type="email" name="username" required>
+    </label>
+    <label>Parolă
+        <input type="password" name="password" required>
+    </label>
+    <button type="submit">Autentificare</button>
+</form>
+
+<p>Nu ai cont? <a th:href="@{/inregistrare}">Creează unul</a></p>
+<p><a th:href="@{/parola-uitata}">Ai uitat parola?</a></p>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pagina nu există — PhotoPlanner</title>
+    <link rel="stylesheet" th:href="@{/css/eroare.css}">
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<p class="cod">Eroare 404</p>
+<h1>Nu găsim pagina asta</h1>
+<p class="explicatie">Linkul poate fi greșit, sau lucrul pe care îl cauți a fost șters între timp.</p>
+<p class="explicatie">Dacă e vorba de o locație, se poate și să fie privată — caz în care o vede doar cine a adăugat-o.</p>
+
+<div class="actiuni">
+    <a class="primar" th:href="@{/}">Înapoi la hartă</a>
+    <a class="secundar" th:href="@{/locatii}">Locații publice</a>
+</div>
+</body>
+</html>

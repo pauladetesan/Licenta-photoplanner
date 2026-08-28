@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acces interzis — PhotoPlanner</title>
+    <link rel="stylesheet" th:href="@{/css/eroare.css}">
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<p class="cod">Eroare 403</p>
+<h1>Nu ai voie aici</h1>
+<p class="explicatie">Lucrul pe care încerci să-l modifici aparține altcuiva.</p>
+<p class="explicatie">Îți poți edita sau șterge doar propriile locații, fotografii și sesiuni.</p>
+
+<div class="actiuni">
+    <a class="primar" th:href="@{/}">Înapoi la hartă</a>
+    <a class="secundar" th:href="@{/locatii}">Locații publice</a>
+    <a class="secundar" th:href="@{/locatii/mele}">Locațiile mele</a>
+</div>
+</body>
+</html>

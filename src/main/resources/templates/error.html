@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>A apărut o eroare — PhotoPlanner</title>
+    <link rel="stylesheet" th:href="@{/css/eroare.css}">
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<p class="cod">Eroare</p>
+<h1>A apărut o eroare</h1>
+<p class="explicatie">Nu am putut încărca pagina cerută.</p>
+
+<div class="actiuni">
+    <a class="primar" th:href="@{/}">Înapoi la hartă</a>
+    <a class="secundar" th:href="@{/locatii}">Locații publice</a>
+</div>
+</body>
+</html>

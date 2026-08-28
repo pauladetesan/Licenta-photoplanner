@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>Editează locație — PhotoPlanner</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px; max-width: 560px; }
+        label { display: block; margin-top: 14px; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; font-family: inherit; }
+        .doua-coloane { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { margin-top: 20px; padding: 10px 20px; cursor: pointer; }
+        .teme label { display: inline-block; margin-right: 12px; font-weight: normal; }
+        a { color: #2c3e50; }
+        .poza { border: 1px dashed #bbb; border-radius: 8px; padding: 14px; margin-top: 20px; background: #fafafa; }
+        .poza button { margin-top: 10px; padding: 6px 14px; font-size: 13px; }
+        .poza-stare { margin-top: 8px; font-size: 13px; }
+        .poza-stare.ok { color: #2c662d; }
+        .poza-stare.eroare { color: #c0392b; }
+        .harta-bloc { margin-top: 20px; }
+        .harta-antet { display: flex; justify-content: space-between; align-items: baseline; }
+        .harta-antet button { margin: 0; padding: 4px 10px; font-size: 12px; }
+        #harta { height: 320px; border-radius: 8px; margin-top: 8px; border: 1px solid #ddd; }
+        .harta-indicatie { color: #888; font-size: 12px; margin: 4px 0 0; }
+        .erori { background: #fdecea; border-radius: 8px; padding: 12px 16px; margin-top: 16px;
+                 color: #a5281b; font-size: 14px; }
+        .erori ul { margin: 6px 0 0; padding-left: 20px; }
+        .eroare-camp { color: #c0392b; font-size: 13px; margin: 4px 0 0; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<h1>Editează locație</h1>
+
+<div class="poza">
+    <label>Completează din fotografie (opțional)
+        <input type="file" id="poza" accept="image/*">
+    </label>
+    <button type="button" id="extrage-btn">Extrage coordonate din poză</button>
+    <p class="poza-stare" id="poza-stare"></p>
+</div>
+
+<div class="harta-bloc">
+    <div class="harta-antet">
+        <strong>Alege locația pe hartă</strong>
+        <button type="button" id="locatia-mea-btn">Folosește locația mea curentă</button>
+    </div>
+    <p class="harta-indicatie">Dă click pe hartă sau trage marcatorul; câmpurile de mai jos se completează automat.</p>
+    <div id="harta"></div>
+</div>
+
+<form th:action="@{/locatii/{id}/editare(id=${locatie.id})}" method="post" th:object="${locatieForm}">
+    <div class="erori" th:if="${#fields.hasAnyErrors()}">
+        <strong>Verifică datele introduse:</strong>
+        <ul>
+            <li th:each="e : ${#fields.allErrors()}" th:text="${e}">eroare</li>
+        </ul>
+    </div>
+
+    <label>Nume
+        <input type="text" th:field="*{nume}" required maxlength="120">
+    </label>
+    <p class="eroare-camp" th:if="${#fields.hasErrors('nume')}" th:errors="*{nume}"></p>
+
+    <label>Descriere
+        <textarea th:field="*{descriere}" rows="3" maxlength="1000"></textarea>
+    </label>
+    <p class="eroare-camp" th:if="${#fields.hasErrors('descriere')}" th:errors="*{descriere}"></p>
+
+    <div class="doua-coloane">
+        <label>Latitudine
+            <input type="number" step="any" min="-90" max="90" th:field="*{latitudine}" required>
+        </label>
+        <label>Longitudine
+            <input type="number" step="any" min="-180" max="180" th:field="*{longitudine}" required>
+        </label>
+    </div>
+    <p class="eroare-camp" th:if="${#fields.hasErrors('latitudine')}" th:errors="*{latitudine}"></p>
+    <p class="eroare-camp" th:if="${#fields.hasErrors('longitudine')}" th:errors="*{longitudine}"></p>
+
+    <label>Orientarea scenei (grade, 0 = nord)
+        <input type="number" min="0" max="359" th:field="*{orientareScena}">
+    </label>
+    <p class="eroare-camp" th:if="${#fields.hasErrors('orientareScena')}" th:errors="*{orientareScena}"></p>
+
+    <label>Vizibilitate
+        <select th:field="*{vizibilitate}">
+            <option th:each="v : ${vizibilitati}" th:value="${v}" th:text="${v}"></option>
+        </select>
+    </label>
+
+    <fieldset class="teme">
+        <legend>Teme</legend>
+        <label th:each="t : ${teme}">
+            <input type="checkbox" th:field="*{teme}" th:value="${t}">
+            <span th:text="${t}"></span>
+        </label>
+    </fieldset>
+    <button type="submit">Salvează modificările</button>
+</form>
+
+<p><a th:href="@{/locatii/mele}">← Înapoi la locațiile mele</a></p>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:inline="javascript">
+    var latInput = document.getElementById('latitudine');
+    var lonInput = document.getElementById('longitudine');
+
+    var latInitiala = /*[[${locatie.latitudine}]]*/ 46.7712;
+    var lonInitiala = /*[[${locatie.longitudine}]]*/ 23.6236;
+    var pozitieInitiala = [latInitiala, lonInitiala];
+    var harta = L.map('harta').setView(pozitieInitiala, 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(harta);
+
+    var marker = L.marker(pozitieInitiala, { draggable: true }).addTo(harta);
+
+    function actualizeazaCampuri(latlng) {
+        latInput.value = latlng.lat.toFixed(6);
+        lonInput.value = latlng.lng.toFixed(6);
+    }
+
+    function actualizeazaMarker(lat, lon, zoom) {
+        var latlng = L.latLng(lat, lon);
+        marker.setLatLng(latlng);
+        harta.setView(latlng, zoom || harta.getZoom());
+    }
+
+    marker.on('dragend', function () {
+        actualizeazaCampuri(marker.getLatLng());
+    });
+
+    harta.on('click', function (evt) {
+        marker.setLatLng(evt.latlng);
+        actualizeazaCampuri(evt.latlng);
+    });
+
+    function sincronizeazaDinCampuri() {
+        var lat = parseFloat(latInput.value);
+        var lon = parseFloat(lonInput.value);
+        if (!isNaN(lat) && !isNaN(lon)) {
+            actualizeazaMarker(lat, lon, 15);
+        }
+    }
+
+    latInput.addEventListener('change', sincronizeazaDinCampuri);
+    lonInput.addEventListener('change', sincronizeazaDinCampuri);
+
+    document.getElementById('locatia-mea-btn').addEventListener('click', function () {
+        if (!navigator.geolocation) {
+            alert('Browserul nu suportă geolocalizare.');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(function (pozitie) {
+            var lat = pozitie.coords.latitude;
+            var lon = pozitie.coords.longitude;
+            actualizeazaMarker(lat, lon, 15);
+            actualizeazaCampuri({ lat: lat, lng: lon });
+        }, function () {
+            alert('Nu s-a putut determina locația curentă.');
+        });
+    });
+
+    document.getElementById('extrage-btn').addEventListener('click', async function () {
+        var fisierInput = document.getElementById('poza');
+        var stare = document.getElementById('poza-stare');
+
+        if (!fisierInput.files.length) {
+            stare.textContent = 'Alege mai întâi o fotografie.';
+            stare.className = 'poza-stare eroare';
+            return;
+        }
+
+        var csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        var formData = new FormData();
+        formData.append('poza', fisierInput.files[0]);
+
+        stare.textContent = 'Se citesc metadatele...';
+        stare.className = 'poza-stare';
+
+        try {
+            var headers = {};
+            headers[csrfHeader] = csrfToken;
+
+            var raspuns = await fetch(/*[[@{/locatii/extrage-din-poza}]]*/ '/locatii/extrage-din-poza', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            });
+            var rezultat = await raspuns.json();
+
+            if (rezultat.gasit) {
+                latInput.value = rezultat.latitudine;
+                lonInput.value = rezultat.longitudine;
+                actualizeazaMarker(rezultat.latitudine, rezultat.longitudine, 15);
+                if (rezultat.orientareScena !== null) {
+                    document.getElementById('orientareScena').value = rezultat.orientareScena;
+                }
+                stare.textContent = rezultat.mesaj + ' Verifică și corectează dacă e nevoie.';
+                stare.className = 'poza-stare ok';
+            } else {
+                stare.textContent = rezultat.mesaj;
+                stare.className = 'poza-stare eroare';
+            }
+        } catch (eroare) {
+            stare.textContent = 'A apărut o eroare la citirea fotografiei.';
+            stare.className = 'poza-stare eroare';
+        }
+    });
+</script>
+</body>
+</html>

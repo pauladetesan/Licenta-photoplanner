@@ -1,0 +1,54 @@
+/* Stilul paginilor de eroare — ținut separat, ca cele patru pagini să nu repete același CSS. */
+
+body {
+    font-family: system-ui, sans-serif;
+    margin: 0 auto;
+    max-width: 560px;
+    padding: 64px 24px;
+    color: #2c3e50;
+}
+
+.cod {
+    font-size: 13px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #aaa;
+    margin: 0 0 8px;
+}
+
+h1 {
+    font-size: 26px;
+    margin: 0 0 12px;
+}
+
+p.explicatie {
+    font-size: 15px;
+    line-height: 1.55;
+    color: #555;
+    margin: 0 0 8px;
+}
+
+.actiuni {
+    margin-top: 28px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.actiuni a {
+    display: inline-block;
+    padding: 9px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.actiuni .primar {
+    background: #2c3e50;
+    color: white;
+}
+
+.actiuni .secundar {
+    border: 1px solid #ccc;
+    color: #2c3e50;
+}

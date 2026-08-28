@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ai uitat parola — PhotoPlanner</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 40px; max-width: 420px; }
+        h1 { color: #2c3e50; font-size: 24px; }
+        label { display: block; margin-top: 14px; font-size: 14px; }
+        input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; font-family: inherit; }
+        button { margin-top: 20px; padding: 10px 20px; cursor: pointer; }
+        .info { color: #2c662d; background: #eafaf1; padding: 12px 14px; margin-top: 18px;
+                border-radius: 8px; font-size: 14px; }
+        .indiciu { color: #777; font-size: 13px; margin-top: 10px; }
+        a { color: #2c3e50; }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/mobil.css}">
+</head>
+<body>
+<h1>Ai uitat parola</h1>
+
+<div th:if="${trimis}">
+    <div class="info">
+        Dacă există un cont cu adresa introdusă, am trimis un link de resetare.
+        Verifică-ți emailul — linkul este valabil o oră.
+    </div>
+    <p class="indiciu">
+        Nu a ajuns nimic? Verifică adresa scrisă și folderul de spam, apoi
+        <a th:href="@{/parola-uitata}">încearcă din nou</a>.
+    </p>
+</div>
+
+<form th:unless="${trimis}" th:action="@{/parola-uitata}" method="post">
+    <p class="indiciu">Scrie adresa contului tău și îți trimitem un link pentru o parolă nouă.</p>
+    <label>Email
+        <input type="email" name="email" required autofocus>
+    </label>
+    <button type="submit">Trimite linkul</button>
+</form>
+
+<p style="margin-top:24px"><a th:href="@{/login}">← Înapoi la autentificare</a></p>
+</body>
+</html>
