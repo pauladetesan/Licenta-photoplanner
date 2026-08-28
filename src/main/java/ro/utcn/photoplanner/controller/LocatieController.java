@@ -30,6 +30,8 @@ import ro.utcn.photoplanner.service.InfoSoare;
 import ro.utcn.photoplanner.service.LocatieService;
 import ro.utcn.photoplanner.service.LuminaService;
 import ro.utcn.photoplanner.service.LunaService;
+import ro.utcn.photoplanner.service.PonderiService;
+import ro.utcn.photoplanner.service.ScorService;
 import ro.utcn.photoplanner.service.SoareService;
 import ro.utcn.photoplanner.service.VremeService;
 
@@ -39,6 +41,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -58,6 +61,8 @@ public class LocatieController {
     private final ComentariuService comentariuService;
     private final FavoritService favoritService;
     private final FotografieService fotografieService;
+    private final ScorService scorService;
+    private final PonderiService ponderiService;
     private final UtilizatorRepository utilizatorRepository;
 
     public LocatieController(LocatieService locatieService, SoareService soareService,
@@ -66,6 +71,7 @@ public class LocatieController {
                               ExifService exifService,
                               ComentariuService comentariuService, FavoritService favoritService,
                               FotografieService fotografieService,
+                              ScorService scorService, PonderiService ponderiService,
                               UtilizatorRepository utilizatorRepository) {
         this.locatieService = locatieService;
         this.soareService = soareService;
@@ -76,6 +82,8 @@ public class LocatieController {
         this.comentariuService = comentariuService;
         this.favoritService = favoritService;
         this.fotografieService = fotografieService;
+        this.scorService = scorService;
+        this.ponderiService = ponderiService;
         this.utilizatorRepository = utilizatorRepository;
     }
 
@@ -275,6 +283,7 @@ public class LocatieController {
     public String detaliu(@PathVariable Long id,
                            @RequestParam(required = false)
                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+                           @RequestParam(required = false) Tema tema,
                            Model model, Authentication authentication) {
 
         Utilizator curent = utilizatorCurentSauNull(authentication);
@@ -309,7 +318,34 @@ public class LocatieController {
         model.addAttribute("esteAutor", curent != null && curent.getId().equals(locatie.getAutor().getId()));
         model.addAttribute("esteFavorit", favoritService.esteFavorit(curent, locatie));
         model.addAttribute("numarFavorite", favoritService.numarFavorite(locatie));
+
+        adaugaRecomandarea(model, locatie, tema, curent);
         return "locatie-detaliu";
+    }
+
+    /**
+     * Cel mai bun moment din următoarele zile, pentru tema aleasă.
+     * <p>
+     * Tema implicită e una dintre cele ale locației: dacă locul e marcat pentru astro, întrebarea
+     * firească e „când merg după stele aici”, nu „când fac portrete”. Vizitatorii nelogați văd
+     * recomandarea calculată cu ponderile implicite — nu au cum să aibă ponderi proprii.
+     */
+    private void adaugaRecomandarea(Model model, Locatie locatie, Tema tema, Utilizator curent) {
+        Tema aleasa = tema != null ? tema : temaImplicita(locatie);
+
+        model.addAttribute("temaScor", aleasa);
+        model.addAttribute("toateTemele", Tema.values());
+        model.addAttribute("zileScor", ScorService.ZILE_IMPLICIT);
+        model.addAttribute("recomandare", scorService.celMaiBun(
+                locatie, aleasa, ponderiService.pentru(curent), ScorService.ZILE_IMPLICIT)
+                .orElse(null));
+    }
+
+    /** Prima temă a locației, în ordine stabilă; peisajul, dacă locația nu are niciuna. */
+    private static Tema temaImplicita(Locatie locatie) {
+        return locatie.getTeme().stream()
+                .min(Comparator.comparing(Enum::name))
+                .orElse(Tema.PEISAJ);
     }
 
     /** Păstrează ziua aleasă la întoarcerea pe pagina locației, ca să nu sară înapoi la azi. */

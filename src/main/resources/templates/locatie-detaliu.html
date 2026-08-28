@@ -40,6 +40,29 @@
                     padding: 2px 9px; font-size: 11px; margin-top: 6px; }
         a { color: #2c3e50; }
 
+        .recomandare { margin-top: 24px; padding: 16px 18px; border: 1px solid #cfe0d3;
+                       background: #f2f9f4; border-radius: 8px; }
+        .recomandare h2 { margin: 0 0 10px; font-size: 17px; }
+        .recomandare form { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+                            margin: 0 0 14px; }
+        .recomandare label { font-size: 13px; color: #555; }
+        .recomandare select { padding: 7px; font-family: inherit; font-size: 14px;
+                              margin-top: 4px; display: block; }
+        .recomandare button { padding: 7px 14px; cursor: pointer; font-size: 14px; }
+        .verdict { font-size: 16px; line-height: 1.6; margin: 0 0 12px; }
+        .verdict strong { color: #1e6b3a; }
+        .scor-mare { display: inline-block; background: #1e6b3a; color: white; border-radius: 6px;
+                     padding: 2px 10px; font-weight: 600; }
+        .de-ce { margin: 0; padding: 0; list-style: none; font-size: 13px; color: #555; }
+        .de-ce li { padding: 3px 0; display: flex; align-items: center; gap: 8px; }
+        .de-ce .nume { min-width: 130px; }
+        .de-ce .bara { flex: 1; height: 7px; background: #dde6df; border-radius: 4px;
+                       overflow: hidden; max-width: 160px; }
+        .de-ce .bara i { display: block; height: 100%; background: #4a9c6b; }
+        .de-ce .detaliu { color: #777; }
+        .de-ce .pondere { color: #999; font-size: 12px; }
+        .fara-recomandare { font-size: 14px; color: #666; margin: 0; }
+
         .data-bloc { margin-top: 24px; padding: 14px 16px; background: #f7f9fb; border-radius: 8px; }
         .data-bloc form { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin: 0; }
         .data-bloc label { font-size: 13px; color: #555; }
@@ -175,6 +198,48 @@
         <button type="submit">Încarcă</button>
         <p class="indiciu">Maximum 12 fotografii pe locație, cel mult 20 MB fiecare.</p>
     </form>
+</div>
+
+<div class="recomandare">
+    <h2>Cel mai bun moment din următoarele <span th:text="${zileScor}">7</span> zile</h2>
+
+    <form th:action="@{/locatii/{id}(id=${locatie.id})}" method="get">
+        <!-- Ziua aleasă mai sus nu trebuie pierdută când schimbi tema. -->
+        <input type="hidden" name="data" th:if="${data != null}" th:value="${data}">
+        <label>Pentru tema
+            <select name="tema" onchange="this.form.submit()">
+                <option th:each="t : ${toateTemele}" th:value="${t}" th:text="${t}"
+                        th:selected="${t == temaScor}">Temă</option>
+            </select>
+        </label>
+        <button type="submit">Arată</button>
+    </form>
+
+    <p class="verdict" th:if="${recomandare != null}">
+        <span th:text="${#strings.toLowerCase(temaScor)}">portret</span>:
+        <strong th:text="${#temporals.format(recomandare.cand, 'EEEE, d MMMM')}">joi, 4 septembrie</strong>
+        la <strong th:text="${#temporals.format(recomandare.cand, 'HH:mm')}">19:15</strong>,
+        <span th:text="${recomandare.moment.eticheta}">Oră de aur — seară</span> —
+        scor <span class="scor-mare" th:text="${recomandare.scorFormatat}">0,84</span>
+        <span th:text="'(' + ${recomandare.verdict} + ')'">(Foarte bun)</span>
+    </p>
+
+    <ul class="de-ce" th:if="${recomandare != null}">
+        <li th:each="c : ${recomandare.contributiiDupaAport()}">
+            <span class="nume" th:text="${c.factor.eticheta}">Nori</span>
+            <span class="bara"><i th:style="'width:' + ${c.procent()} + '%'"></i></span>
+            <span class="detaliu" th:text="${c.detaliu}">40% nori</span>
+            <span class="pondere" th:text="'× ' + ${c.pondere}">× 3</span>
+        </li>
+    </ul>
+
+    <p class="fara-recomandare" th:if="${recomandare == null}">
+        Pentru tema asta nu există niciun moment potrivit în intervalul următor.
+    </p>
+
+    <p class="fara-recomandare" sec:authorize="isAuthenticated()" style="margin-top:10px">
+        <a th:href="@{/cont}">Reglează ponderile</a> dacă îți pasă altfel de cer, lumină sau vreme.
+    </p>
 </div>
 
 <div class="data-bloc">
