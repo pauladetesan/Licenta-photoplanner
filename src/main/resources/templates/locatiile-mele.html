@@ -34,19 +34,13 @@
         .coperta { float: right; width: 110px; height: 80px; object-fit: cover; border-radius: 6px;
                    border: 1px solid #eee; margin: 0 0 8px 14px; background: #f4f4f4; }
     </style>
+    <link rel="stylesheet" th:href="@{/css/navigare.css}">
     <link rel="stylesheet" th:href="@{/css/mobil.css}">
 </head>
 <body>
 <div class="antet">
     <h1>Locațiile mele</h1>
-    <div>
-        <a th:href="@{/}">Acasă</a> · <a th:href="@{/locatii}">Locații publice</a>
-        · <a th:href="@{/favorite}">Favorite</a>
-            · <a th:href="@{/sesiuni}">Sesiuni</a>
-            · <a th:href="@{/cont}">Contul meu</a>
-        · <a th:href="@{/locatii/noua}">+ Adaugă locație</a>
-        · <span th:replace="~{fragmente/delogare :: buton}"></span>
-    </div>
+    <th:block th:replace="~{fragmente/navigare :: bara('mele')}"></th:block>
 </div>
 
 <p class="goala" th:if="${locatii.isEmpty()}">Nu ai adăugat încă nicio locație. <a th:href="@{/locatii/noua}">Adaugă prima</a>.</p>

@@ -47,21 +47,13 @@
         .distanta { display: inline-block; background: #eef7ee; color: #2c662d; border-radius: 10px;
                     padding: 2px 9px; font-size: 12px; margin-left: 6px; }
     </style>
+    <link rel="stylesheet" th:href="@{/css/navigare.css}">
     <link rel="stylesheet" th:href="@{/css/mobil.css}">
 </head>
 <body>
 <div class="antet">
     <h1>Locații publice</h1>
-    <div>
-        <a th:href="@{/}">Acasă</a>
-        <span sec:authorize="!isAuthenticated()"> · <a th:href="@{/login}">Autentificare</a></span>
-        <span sec:authorize="isAuthenticated()"> · <a th:href="@{/locatii/mele}">Locațiile mele</a>
-            · <a th:href="@{/favorite}">Favorite</a>
-            · <a th:href="@{/sesiuni}">Sesiuni</a>
-            · <a th:href="@{/cont}">Contul meu</a>
-            · <a th:href="@{/locatii/noua}">+ Adaugă locație</a>
-            · <span th:replace="~{fragmente/delogare :: buton}"></span></span>
-    </div>
+    <th:block th:replace="~{fragmente/navigare :: bara('locatii')}"></th:block>
 </div>
 
 <form class="cautare" th:action="@{/locatii}" method="get">

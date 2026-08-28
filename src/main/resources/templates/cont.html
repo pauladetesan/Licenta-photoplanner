@@ -47,15 +47,13 @@
         .reusit { color: #1e6b3a; background: #eaf7ef; padding: 10px 12px; border-radius: 6px;
                   margin-top: 12px; font-size: 14px; }
     </style>
+    <link rel="stylesheet" th:href="@{/css/navigare.css}">
     <link rel="stylesheet" th:href="@{/css/mobil.css}">
 </head>
 <body>
 <div class="antet">
     <h1>Contul meu</h1>
-    <nav>
-        <a th:href="@{/}">Acasă</a> · <a th:href="@{/locatii/mele}">Locațiile mele</a>
-        · <a th:href="@{/sesiuni}">Sesiuni</a> · <span th:replace="~{fragmente/delogare :: buton}"></span>
-    </nav>
+    <th:block th:replace="~{fragmente/navigare :: bara('cont')}"></th:block>
 </div>
 
 <div class="detalii">

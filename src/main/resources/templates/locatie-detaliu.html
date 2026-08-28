@@ -120,16 +120,12 @@
                        font-size: 13px; color: #777; }
         .vreme-sursa { font-size: 11px; color: #aaa; margin-top: 10px; }
     </style>
+    <link rel="stylesheet" th:href="@{/css/navigare.css}">
     <link rel="stylesheet" th:href="@{/css/mobil.css}">
 </head>
 <body>
 <div class="antet">
-    <a th:href="@{/}">Acasă</a> · <a th:href="@{/locatii}">Locații publice</a>
-    <span sec:authorize="isAuthenticated()"> · <a th:href="@{/locatii/mele}">Locațiile mele</a>
-        · <a th:href="@{/favorite}">Favorite</a>
-            · <a th:href="@{/sesiuni}">Sesiuni</a>
-            · <a th:href="@{/cont}">Contul meu</a> · <span th:replace="~{fragmente/delogare :: buton}"></span></span>
-    <span sec:authorize="!isAuthenticated()"> · <a th:href="@{/login}">Autentificare</a></span>
+    <th:block th:replace="~{fragmente/navigare :: bara('detaliu')}"></th:block>
 </div>
 
 <h1>

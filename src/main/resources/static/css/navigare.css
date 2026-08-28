@@ -1,0 +1,52 @@
+/*
+ * Rândul de navigare, comun tuturor paginilor.
+ *
+ * Stă într-un fișier separat, nu în blocul <style> al fiecărei pagini, pentru că exact acolo
+ * s-a născut bugul de delogare: navigarea era rescrisă de mână în șapte locuri, iar greșeala
+ * din prima s-a copiat în toate celelalte.
+ */
+
+.navigare {
+    font-size: 14px;
+    line-height: 1.9;
+}
+
+.navigare a {
+    color: #2c3e50;
+}
+
+/*
+ * Punctele despărțitoare vin din CSS, nu din șablon. Altfel fiecare link ar trebui să știe
+ * dacă e primul din rând — iar cum linkurile apar și dispar după pagina curentă și după
+ * autentificare, „primul” se schimbă de la o pagină la alta.
+ */
+.navigare > :not(:first-child)::before {
+    content: "·";
+    color: #aaa;
+    margin: 0 6px 0 4px;
+}
+
+/*
+ * Delogarea e un buton, nu un link: Spring Security ascultă doar pe POST /logout cât timp
+ * CSRF e pornit, iar un GET ar putea fi declanșat de pe alt site. Arată însă ca vecinii lui.
+ */
+.navigare form {
+    display: inline;
+    margin: 0;
+}
+
+.navigare button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: #2c3e50;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Regula pentru ecrane tactile din mobil.css ar întinde butonul pe 44px și ar rupe rândul. */
+@media (pointer: coarse) {
+    .navigare button { min-height: 0; }
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!--
+  Rândul de navigare, într-un singur loc.
+
+  Înainte, fiecare pagină își scria propriul rând. Nu erau la fel: „Contul meu” lipsea din
+  favorite.html, „+ Adaugă locație” apărea doar în două pagini, iar linkul stricat de delogare
+  era copiat în toate șapte. Diferențele nu păreau alese, ci rămase așa.
+
+  Acum lista e una singură, iar fiecare pagină spune doar unde se află; linkul către pagina
+  curentă se scoate, ca să nu trimită nicăieri.
+
+  Parametrul `pagina` ia una dintre valorile: acasa, locatii, mele, favorite, sesiuni, cont.
+  O pagină care nu e în listă (de pildă detaliul unei locații) trimite altceva — de exemplu
+  'detaliu' — și primește atunci rândul întreg.
+
+  Stilurile sunt în /css/navigare.css, pe care fiecare pagină îl încarcă lângă mobil.css.
+-->
+<nav class="navigare" th:fragment="bara(pagina)">
+
+    <a th:if="${pagina != 'acasa'}" th:href="@{/}">Acasă</a>
+
+    <a th:if="${pagina != 'locatii'}" th:href="@{/locatii}">Locații publice</a>
+
+    <a sec:authorize="isAuthenticated()" th:if="${pagina != 'mele'}"
+       th:href="@{/locatii/mele}">Locațiile mele</a>
+
+    <a sec:authorize="isAuthenticated()" th:if="${pagina != 'favorite'}"
+       th:href="@{/favorite}">Favorite</a>
+
+    <a sec:authorize="isAuthenticated()" th:if="${pagina != 'sesiuni'}"
+       th:href="@{/sesiuni}">Sesiuni</a>
+
+    <a sec:authorize="isAuthenticated()" th:if="${pagina != 'cont'}"
+       th:href="@{/cont}">Contul meu</a>
+
+    <a sec:authorize="isAuthenticated()" th:href="@{/locatii/noua}">+ Adaugă locație</a>
+
+    <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
+        <button type="submit">Delogare</button>
+    </form>
+
+    <a sec:authorize="!isAuthenticated()" th:href="@{/inregistrare}">Creează cont</a>
+    <a sec:authorize="!isAuthenticated()" th:href="@{/login}">Autentificare</a>
+</nav>
+
+</body>
+</html>
