@@ -151,14 +151,25 @@ public class ResetareParolaService {
         utilizator.setParola(passwordEncoder.encode(parolaNoua));
         utilizatorRepository.save(utilizator);
 
-        // Tokenul folosit și toate celelalte cereri în așteptare devin inutilizabile.
+        anuleazaCererileInAsteptare(utilizator);
+
+        log.info("Parola contului {} a fost schimbată prin resetare.", utilizator.getId());
+    }
+
+    /**
+     * Face inutilizabile toate linkurile de resetare încă nefolosite ale unui cont.
+     * <p>
+     * Se cheamă ori de câte ori parola se schimbă, indiferent pe ce cale: un link cerut înainte
+     * de schimbare nu mai are voie să funcționeze după ea. Altfel cineva care a apucat să ceară
+     * o resetare ar putea intra peste noua parolă.
+     */
+    @Transactional
+    public void anuleazaCererileInAsteptare(Utilizator utilizator) {
         LocalDateTime acum = LocalDateTime.now();
         List<TokenResetare> nefolosite =
                 tokenRepository.findByUtilizatorAndDataFolosiriiIsNull(utilizator);
         nefolosite.forEach(t -> t.setDataFolosirii(acum));
         tokenRepository.saveAll(nefolosite);
-
-        log.info("Parola contului {} a fost schimbată prin resetare.", utilizator.getId());
     }
 
     private String genereazaToken() {

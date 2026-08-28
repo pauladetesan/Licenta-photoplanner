@@ -36,6 +36,16 @@
         .alegere input { width: auto; margin-right: 6px; }
         .alegere .explicatie { font-size: 13px; color: #666; margin: 8px 0 0; line-height: 1.5; }
         .nimic { color: #777; font-style: italic; }
+
+        .parola { border: 1px solid #eee; border-radius: 8px; padding: 16px 18px; margin-top: 12px; }
+        .parola label { display: block; font-size: 14px; margin-top: 12px; }
+        .parola label:first-of-type { margin-top: 0; }
+        .parola input { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box;
+                        font-family: inherit; font-size: 15px; }
+        .parola button { margin-top: 16px; padding: 10px 18px; cursor: pointer; font-size: 14px;
+                         background: #2c3e50; color: white; border: none; border-radius: 6px; }
+        .reusit { color: #1e6b3a; background: #eaf7ef; padding: 10px 12px; border-radius: 6px;
+                  margin-top: 12px; font-size: 14px; }
     </style>
     <link rel="stylesheet" th:href="@{/css/mobil.css}">
 </head>
@@ -54,6 +64,26 @@
     <div><span class="eticheta">Cont creat la</span><br>
         <span th:text="${#temporals.format(utilizator.dataInregistrare, 'dd MMMM yyyy')}">data</span></div>
 </div>
+
+<h2>Schimbarea parolei</h2>
+
+<div class="reusit" th:if="${param.parola}">Parola a fost schimbată.</div>
+<div class="eroare" th:if="${eroareParola}" th:text="${eroareParola}"></div>
+
+<form class="parola" th:action="@{/cont/parola}" method="post">
+    <label>Parola curentă
+        <input type="password" name="parolaCurenta" required autocomplete="current-password">
+    </label>
+    <label>Parola nouă (minim 8 caractere)
+        <input type="password" name="parolaNoua" required minlength="8" maxlength="72"
+               autocomplete="new-password">
+    </label>
+    <label>Repetă parola nouă
+        <input type="password" name="parolaRepetata" required minlength="8" maxlength="72"
+               autocomplete="new-password">
+    </label>
+    <button type="submit">Schimbă parola</button>
+</form>
 
 <h2>Ștergerea contului</h2>
 
