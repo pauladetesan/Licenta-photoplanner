@@ -16,10 +16,10 @@ import ro.utcn.photoplanner.repository.UtilizatorRepository;
 import ro.utcn.photoplanner.service.InfoSoare;
 import ro.utcn.photoplanner.service.LocatieService;
 import ro.utcn.photoplanner.service.SesiuneFotoService;
+import ro.utcn.photoplanner.service.ScorService;
 import ro.utcn.photoplanner.service.SoareService;
 import ro.utcn.photoplanner.service.VremeService;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -49,27 +49,6 @@ public class SesiuneFotoController {
                 .orElseThrow(() -> new IllegalStateException("Utilizator autentificat inexistent."));
     }
 
-    /** Ora din zi la care se referă momentul ales, calculată pentru locația și ziua sesiunii. */
-    static ZonedDateTime oraMomentului(MomentZi moment, InfoSoare soare) {
-        return switch (moment) {
-            case RASARIT -> soare.rasarit();
-            case ORA_AUR_DIMINEATA -> soare.mijlocDimineata();
-            case ZI -> mijloculZilei(soare);
-            case ORA_AUR_SEARA -> soare.mijlocSeara();
-            case APUS -> soare.apus();
-            // Cerul se întunecă de tot la ceva vreme după apus.
-            case NOAPTE -> soare.apus() != null ? soare.apus().plusHours(2) : null;
-        };
-    }
-
-    private static ZonedDateTime mijloculZilei(InfoSoare soare) {
-        if (soare.rasarit() == null || soare.apus() == null) {
-            return null;
-        }
-        long secunde = Duration.between(soare.rasarit(), soare.apus()).getSeconds();
-        return soare.rasarit().plusSeconds(secunde / 2);
-    }
-
     /** Împachetează sesiunile cu ora momentului și prognoza, ca lista să le poată afișa. */
     private List<SesiunePlanificata> cuDetalii(List<SesiuneFoto> sesiuni) {
         return sesiuni.stream().map(s -> {
@@ -78,7 +57,7 @@ public class SesiuneFotoController {
             InfoSoare soare = soareService.calculeaza(
                     locatie.getLatitudine(), locatie.getLongitudine(), s.getData(), zona);
 
-            ZonedDateTime moment = oraMomentului(s.getMoment(), soare);
+            ZonedDateTime moment = ScorService.oraMomentului(s.getMoment(), soare);
             return new SesiunePlanificata(s, moment, vremeService.laUnMoment(
                     locatie.getLatitudine(), locatie.getLongitudine(), s.getData(), zona, moment));
         }).toList();
