@@ -293,6 +293,29 @@ class ScorServiceTest {
      * variantă (0,75 / 0,55 / 0,35) dădea „Foarte bun” pentru toate cele cinci teme pe date
      * reale — o etichetă pe care o primește toată lumea nu spune nimic.
      */
+    /**
+     * Pe date reale au apărut, în același tabel, „0,85 (Bun)” și „0,85 (Foarte bun)”: numărul
+     * se rotunjea la afișare, dar verdictul se lua după valoarea brută. Eticheta trebuie să se
+     * potrivească întotdeauna cu cifra de lângă ea.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "0.8497, 0|85, Foarte bun",
+            "0.8502, 0|85, Foarte bun",
+            "0.8449, 0|84, Bun",
+            "0.6999, 0|70, Bun",
+            "0.6949, 0|69, Acceptabil",
+            "0.4999, 0|50, Acceptabil",
+            "0.4949, 0|49, Slab"
+    })
+    @DisplayName("Verdictul se potrivește mereu cu numărul afișat, nu cu cel brut")
+    void verdictulSePotriveleCuNumarulAfisat(double scor, String afisatCuBara, String asteptat) {
+        String afisat = afisatCuBara.replace('|', ',');
+
+        assertThat(cuScorul(scor).scorFormatat()).isEqualTo(afisat);
+        assertThat(cuScorul(scor).verdict()).isEqualTo(asteptat);
+    }
+
     @ParameterizedTest
     @CsvSource({
             "0.95, Foarte bun",
