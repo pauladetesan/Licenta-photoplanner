@@ -18,6 +18,38 @@ import java.util.Optional;
 public interface LocatieRepository extends JpaRepository<Locatie, Long> {
 
     /**
+     * Distanța haversine, în kilometri, între punctul căutat ({@code :lat}, {@code :lon}) și
+     * locația {@code l}.
+     * <p>
+     * Aceeași formulă ca în {@code LocatieService.distantaKm}, care calculează distanța afișată
+     * în listă. Interogarea folosea înainte legea cosinusurilor.
+     * <p>
+     * Motivul schimbării e consecvența, nu precizia. Se spune adesea că legea cosinusurilor se
+     * strică sub un kilometru, fiindcă {@code acos} e prost condiționat lângă 1 — dar asta e
+     * valabil în simplă precizie. În {@code double}, la 50 de metri eroarea ei e de ordinul
+     * centimetrilor, deci practic tot una cu haversine; s-a și verificat: testele din
+     * {@code CautareDistantaTest} trec la fel cu ambele formule.
+     * <p>
+     * Ce se câștigă e că filtrul și numărul afișat pornesc acum din aceeași formulă, deci nu
+     * pot ajunge niciodată să se contrazică — și că documentația de mai jos, care spunea de la
+     * bun început „haversine”, a devenit adevărată.
+     * <p>
+     * E o constantă tocmai ca să nu fie scrisă de două ori, în interogare și în cea de numărare:
+     * o formulă copiată e o formulă care ajunge să difere.
+     * <p>
+     * La locul folosirii, spațiul dinaintea ei se pune explicit cu {@code + " " +}: un text block
+     * taie spațiile de la capătul fiecărei linii, deci „{@code or }” devine „{@code or}” și s-ar
+     * lipi de formulă, dând „{@code or2 * 6371.0}”.
+     */
+    String DISTANTA_HAVERSINE_KM = """
+            2 * 6371.0 * asin(sqrt(least(1.0,
+                 sin((radians(l.latitudine) - radians(:lat)) / 2)
+               * sin((radians(l.latitudine) - radians(:lat)) / 2)
+               + cos(radians(:lat)) * cos(radians(l.latitudine))
+               * sin((radians(l.longitudine) - radians(:lon)) / 2)
+               * sin((radians(l.longitudine) - radians(:lon)) / 2))))""";
+
+    /**
      * {@code @EntityGraph} aduce autorul în aceeași interogare — listele îi afișează numele,
      * iar fără asta ar urma câte un select pentru fiecare locație.
      */
@@ -45,10 +77,8 @@ public interface LocatieRepository extends JpaRepository<Locatie, Long> {
                    or exists (select t from Locatie alta join alta.teme t
                               where alta = l and t in :teme))
               and (:filtreazaDistanta = false
-                   or 6371.0 * acos(least(1.0,
-                        cos(radians(:lat)) * cos(radians(l.latitudine))
-                          * cos(radians(l.longitudine) - radians(:lon))
-                        + sin(radians(:lat)) * sin(radians(l.latitudine)))) <= :raza)
+                   or """ + " " + DISTANTA_HAVERSINE_KM + """
+                        <= :raza)
             order by l.dataAdaugare desc
             """,
             countQuery = """
@@ -61,10 +91,8 @@ public interface LocatieRepository extends JpaRepository<Locatie, Long> {
                    or exists (select t from Locatie alta join alta.teme t
                               where alta = l and t in :teme))
               and (:filtreazaDistanta = false
-                   or 6371.0 * acos(least(1.0,
-                        cos(radians(:lat)) * cos(radians(l.latitudine))
-                          * cos(radians(l.longitudine) - radians(:lon))
-                        + sin(radians(:lat)) * sin(radians(l.latitudine)))) <= :raza)
+                   or """ + " " + DISTANTA_HAVERSINE_KM + """
+                        <= :raza)
             """)
     Page<Locatie> cauta(@Param("tipar") String tipar,
                          @Param("filtreazaTeme") boolean filtreazaTeme,
