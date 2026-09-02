@@ -57,6 +57,36 @@ Baza de date e H2 pe fișier, în `./data/photoplanner`, iar fotografiile încă
 `./data/poze`. Niciuna nu e în repository: sunt date locale, nu cod. Schema se creează singură la
 prima pornire (`ddl-auto=update`).
 
+### Pornire cu date de demonstrație
+
+Aplicația pornită așa e goală — nu are niciun cont și nicio locație. Pentru o demonstrație
+rapidă există profilul `demo`, cu o bază pregătită dinainte:
+
+```bash
+./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=demo
+```
+
+Conține patru conturi și trei locații publice cu fotografii. Autentificare:
+
+| Email | Parolă |
+| --- | --- |
+| `ana.pop@exemplu.ro` | `FotografiePeisaj2026` |
+| `radu.ionescu@exemplu.ro` | `FotografiePeisaj2026` |
+| `maria.dumitru@exemplu.ro` | `AltaParolaComplet9` |
+| `dan.stan@exemplu.ro` | `ZiDeToamna2026rece` |
+
+Ana și Radu au aceeași parolă intenționat: în tabelul `utilizatori` se vede că amprentele lor
+BCrypt sunt complet diferite, fiindcă fiecare cont primește altă sare.
+
+Spre deosebire de `./data`, directorul `./demo` **este** în repository — e un instantaneu fix,
+gândit să însoțească aplicația. Cele două profiluri scriu în directoare diferite, deci demonstrația
+nu atinge niciodată baza de lucru. Fotografiile din demo sunt imagini generate, nu fotografii
+reale; se pot înlocui încărcând altele din aplicație în timp ce rulează pe profilul `demo`.
+
+Baza de demonstrație se poate deschide și direct din IntelliJ (`View → Tool Windows → Database`),
+cu `jdbc:h2:file:./demo/photoplanner-demo`, utilizator `sa`, fără parolă. H2 pe fișier acceptă o
+singură conexiune, deci aplicația trebuie oprită întâi.
+
 O a doua instanță nu poate porni cât timp prima rulează — H2 pe fișier nu se lasă deschis de două
 ori. Oprește-o întâi pe prima și așteaptă să se elibereze portul 8080.
 
@@ -66,7 +96,7 @@ ori. Oprește-o întâi pe prima și așteaptă să se elibereze portul 8080.
 ./mvnw.cmd test
 ```
 
-178 de teste. Rulează pe o bază proprie, în memorie, cu director temporar pentru poze și fără
+216 de teste. Rulează pe o bază proprie, în memorie, cu director temporar pentru poze și fără
 acces la internet (`src/test/resources/application.properties`) — nu ating datele reale și merg și
 cu aplicația pornită.
 
