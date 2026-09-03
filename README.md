@@ -66,7 +66,9 @@ rapidă există profilul `demo`, cu o bază pregătită dinainte:
 ./mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=demo
 ```
 
-Conține patru conturi și trei locații publice cu fotografii. Autentificare:
+Conține patru conturi, trei locații publice cu fotografii, comentarii, favorite, sesiuni foto
+planificate, ponderi personalizate pentru doi utilizatori și o cerere de resetare în așteptare —
+adică toate cele zece tabele au conținut. Autentificare:
 
 | Email | Parolă |
 | --- | --- |
@@ -76,7 +78,13 @@ Conține patru conturi și trei locații publice cu fotografii. Autentificare:
 | `dan.stan@exemplu.ro` | `ZiDeToamna2026rece` |
 
 Ana și Radu au aceeași parolă intenționat: în tabelul `utilizatori` se vede că amprentele lor
-BCrypt sunt complet diferite, fiindcă fiecare cont primește altă sare.
+BCrypt sunt complet diferite, fiindcă fiecare cont primește altă sare. La fel, în
+`tokenuri_resetare` se vede că se păstrează doar amprenta SHA-256 a tokenului, de 64 de
+caractere, nu tokenul trimis pe email.
+
+Ponderile sunt puse doar pentru Ana și Maria, nu pentru toți: cine nu și-a schimbat nimic n-are
+rând în `ponderi_scor` și primește valorile implicite. Ana ține la direcția luminii (pondere 5) și
+ignoră temperatura (0); Maria se uită în primul rând la cer și la ploaie.
 
 Spre deosebire de `./data`, directorul `./demo` **este** în repository — e un instantaneu fix,
 gândit să însoțească aplicația. Cele două profiluri scriu în directoare diferite, deci demonstrația
